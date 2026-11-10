@@ -1,0 +1,11 @@
+node_modules
+dist
+*.local
+
+# Secrets: never commit these
+.env
+.env.*
+!.env.example
+server/service-account.json
+server/*service-account*.json
+esp32_dropsafe/secrets.h

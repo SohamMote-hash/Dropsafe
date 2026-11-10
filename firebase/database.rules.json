@@ -1,0 +1,10 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "monitoring": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}

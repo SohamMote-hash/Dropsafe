@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy-950: #071427;
+  --color-navy-900: #0b1f3a;
+  --color-navy-800: #12294b;
+  --color-navy-700: #1b3a66;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  html, body { overflow-x: hidden; overflow-x: clip; }
+  #root { min-width: 0; }
+
+  body {
+    /* Two soft colour washes keep the flat slate background from looking like a blank page. */
+    background:
+      radial-gradient(1100px 520px at 12% -8%, rgb(8 145 178 / 0.10), transparent 62%),
+      radial-gradient(900px 460px at 100% 0%, rgb(37 99 235 / 0.06), transparent 58%),
+      #f4f7fb;
+    color: #0f172a;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection { background: rgb(8 145 178 / 0.22); }
+  :focus-visible { outline: 2px solid #0891b2; outline-offset: 2px; }
+  * { scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────────── */
+
+@keyframes ds-fade-up {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ds-page-in {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Gentle pulse used for active alarm indicators */
+@keyframes ds-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* Expanding ring behind the connection dot */
+@keyframes ds-ping {
+  0% { transform: scale(0.85); opacity: 0.65; }
+  70%, 100% { transform: scale(2.4); opacity: 0; }
+}
+
+/* Notification cards slide in from the bottom-right */
+@keyframes ds-toast-in {
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Slow bubbles rising inside the IV bag */
+@keyframes ds-bubble-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  18% { opacity: 0.45; }
+  100% { transform: translateY(-20px); opacity: 0; }
+}
+
+@layer components {
+  .ds-pulse { animation: ds-pulse 1.2s ease-in-out infinite; }
+  .ds-ping { animation: ds-ping 1.9s cubic-bezier(0, 0, 0.2, 1) infinite; }
+  .ds-bubble { animation: ds-bubble-rise 4.6s ease-in-out infinite; }
+  .ds-toast { animation: ds-toast-in 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+
+  /* Elevated surface shared by every card in the dashboard. */
+  .ds-card {
+    border-radius: 1rem;
+    border: 1px solid rgb(226 232 240);
+    background: #fff;
+    box-shadow:
+      0 1px 2px rgb(15 23 42 / 0.04),
+      0 14px 34px -24px rgb(11 31 58 / 0.45);
+    transition:
+      transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      box-shadow 260ms ease,
+      border-color 260ms ease;
+  }
+
+  .ds-lift:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow:
+      0 2px 4px rgb(15 23 42 / 0.05),
+      0 22px 44px -26px rgb(11 31 58 / 0.5);
+  }
+
+  /* Staggered entrance: set --i to the item index inside a map. */
+  .ds-reveal {
+    animation: ds-fade-up 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+
+  .ds-page { animation: ds-page-in 240ms ease-out both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ds-reveal { animation: none; }
+  .ds-lift:hover { transform: none; }
+}
