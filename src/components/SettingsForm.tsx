@@ -73,15 +73,6 @@ export function SettingsForm({ settings, onSave }: { settings: Settings; onSave:
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); save(); }} className="space-y-6">
-      <div className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
-        <strong>Demonstration values only.</strong> These thresholds are classroom settings for the prototype,
-        not clinical recommendations.
-      </div>
-      <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-900">
-        <strong>Wireless mode:</strong> the ESP32 keeps its own thresholds in <code>config.h</code> so local alarms
-        work without internet, and the gateway has matching values in <code>.env</code>. Keep all three
-        aligned for consistent LOW / CRITICAL behaviour.
-      </div>
       <div className="grid gap-5 sm:grid-cols-2">
         {field('lowMl', 'Low-fluid threshold', 'mL', `LOW when remaining fluid is at or below this (max ${LIMITS.maxThresholdMl}).`)}
         {field('criticalMl', 'Critical-fluid threshold', 'mL', 'CRITICAL at or below this. Must be lower than the low threshold.')}
