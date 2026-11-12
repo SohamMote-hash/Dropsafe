@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "DropSafe - Automatic IV Bag Remainder Monitoring System (demo dashboard)",
   "type": "module",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "vite",
     "server": "node server/index.js",

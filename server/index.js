@@ -1,5 +1,6 @@
 // Secure write gateway: ESP32 -> HTTPS POST -> Firebase Admin SDK -> Realtime Database.
 // Browsers never receive the Admin credentials or the device token.
+import { pathToFileURL } from 'node:url';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -9,7 +10,7 @@ import { validateTelemetry } from './telemetry.js';
 import { initRealtimeDatabase, publishConfig, writeTelemetry } from './firebase.js';
 
 const db = initRealtimeDatabase(config);
-const app = express();
+export const app = express();
 
 app.disable('x-powered-by');
 app.set('trust proxy', 1);
@@ -83,9 +84,20 @@ app.use((error, _req, res, _next) => {
   return res.status(500).json({ ok: false, error: 'Internal error.' });
 });
 
+let configPublished = null;
+
+/** Publishes the effective limits once per process; warm serverless instances reuse the result. */
+export function ensureConfigPublished() {
+  configPublished ??= publishConfig(db, config).catch((error) => {
+    configPublished = null;
+    throw error;
+  });
+  return configPublished;
+}
+
 async function start() {
   try {
-    await publishConfig(db, config);
+    await ensureConfigPublished();
     app.listen(config.port, () => {
       console.log(`DropSafe write gateway listening on port ${config.port}`);
       console.log(`Accepting telemetry for device "${config.deviceId}", bag "${config.bagId}".`);
@@ -97,4 +109,7 @@ async function start() {
   }
 }
 
-start();
+// `node server/index.js` starts a listener; imports from api/ just reuse the app.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  start();
+}
