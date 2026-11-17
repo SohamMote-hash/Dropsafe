@@ -44,6 +44,38 @@ describe('initial monitor state', () => {
   });
 });
 
+describe('SET_SOURCE', () => {
+  it('drops the demo history of the live channel when a live source is selected', () => {
+    const simulated = createInitialState(DEFAULT_SETTINGS, [], NOW);
+    expect(simulated.bags[0].history.length).toBeGreaterThan(0);
+
+    const live = monitorReducer(simulated, {
+      type: 'SET_SOURCE', source: 'FIREBASE', liveBagId: 'IV-01',
+    });
+
+    expect(live.bags[0].history).toHaveLength(0);
+    expect(live.bags[0].flowMlH).toBeNull();
+  });
+
+  it('keeps the cloud record time as the last reading after history hydration', () => {
+    const recordedAt = NOW - 120_000;
+    let state = createInitialState(DEFAULT_SETTINGS, [], NOW);
+    state = monitorReducer(state, { type: 'SET_SOURCE', source: 'FIREBASE', liveBagId: 'IV-01' });
+    state = monitorReducer(state, {
+      type: 'SENSOR_READING',
+      reading: { bagId: 'IV-01', timestamp: recordedAt, simSeconds: recordedAt / 1000, weightG: 530.63 },
+    });
+    state = monitorReducer(state, {
+      type: 'HYDRATE_HISTORY',
+      bagId: 'IV-01',
+      points: [{ t: recordedAt, simS: recordedAt / 1000, volumeMl: 432.9, weightG: 530.6, flowMlH: null }],
+    });
+
+    expect(state.bags[0].lastReadingAt).toBe(recordedAt);
+    expect(state.bags[0].history.some((point) => point.t === NOW)).toBe(false);
+  });
+});
+
 describe('ADD_BAG', () => {
   it('adds the next free channel as a running simulated bag', () => {
     const state = withAddedBag(createInitialState(DEFAULT_SETTINGS, [], NOW));

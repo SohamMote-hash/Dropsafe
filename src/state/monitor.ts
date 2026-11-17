@@ -102,7 +102,8 @@ export function monitorReducer(state: MonitorState, action: MonitorAction): Moni
         ...state,
         source: action.source,
         bags: state.bags.map((b) => b.id === liveBagId
-          ? b
+          // Demo points would otherwise merge into cloud history and win the timestamp check.
+          ? { ...b, history: [], flowMlH: null }
           : { ...b, status: 'SENSOR_FAULT' as const, weightG: null, flowMlH: null, ackedStatus: null }),
       };
     }
