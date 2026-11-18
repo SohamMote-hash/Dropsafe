@@ -36,6 +36,11 @@ struct Sample {
   uint32_t seq;
 };
 
+struct SendOutcome {
+  int code;                    // HTTP status, or 0 when nothing was sent
+  unsigned long retryAfterMs;  // gateway hint from HTTP 429
+};
+
 Sample currentSample = {};
 LocalStatus currentStatus = LocalStatus::NORMAL;
 LocalStatus alarmStatus = LocalStatus::NORMAL;
@@ -268,11 +273,6 @@ bool ensureTls() {
   return true;
 }
 
-struct SendOutcome {
-  int code;                    // HTTP status, or 0 when nothing was sent
-  unsigned long retryAfterMs;  // gateway hint from HTTP 429
-};
-
 SendOutcome sendSample(const Sample& sample) {
   SendOutcome outcome = {0, 0};
   if (WiFi.status() != WL_CONNECTED) return outcome;
@@ -282,8 +282,9 @@ SendOutcome sendSample(const Sample& sample) {
     Serial.println("HTTP begin failed (URL?).");
     return outcome;
   }
-  // Keep the TLS connection open where the gateway allows it: skips a handshake per publish.
-  http.setReuse(true);
+  // Vercel drops idle connections between invocations, and reusing a half-closed
+  // TLS socket makes the POST hang until the read timeout (HTTP -11). A fresh
+  // connection per publish costs a handshake but always completes.
   http.setConnectTimeout(HTTP_TIMEOUT_MS);
   http.setTimeout(HTTP_TIMEOUT_MS);
   http.addHeader("Content-Type", "application/json");
@@ -343,7 +344,7 @@ void networkTask(void*) {
     } else if (outcome.code == 429) {
       vTaskDelay(pdMS_TO_TICKS(outcome.retryAfterMs));
     } else {
-      vTaskDelay(pdMS_TO_TICKS(5000)); // gateway unreachable: back off, keep sampling
+      vTaskDelay(pdMS_TO_TICKS(ERROR_BACKOFF_MS)); // gateway unreachable: back off briefly, keep sampling
     }
   }
 }

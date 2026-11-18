@@ -52,7 +52,8 @@ export const config = {
   emptyBagTareG: number('EMPTY_BAG_TARE_G', 30, { min: 0, max: 5000 }),
   densityGPerMl,
   maxLoadG: number('MAX_LOAD_G', 5000, { min: 1, max: 100000 }),
-  minWriteIntervalMs: number('MIN_WRITE_INTERVAL_MS', 1000, { min: 0, max: 600000 }),
+  // 500 ms leaves room for arrival jitter while still capping a client at 2 writes/s.
+  minWriteIntervalMs: number('MIN_WRITE_INTERVAL_MS', 500, { min: 0, max: 600000 }),
   maxHistoryPoints: number('MAX_HISTORY_POINTS', 500, { min: 10, max: 100000 }),
   requireHttps: boolean('REQUIRE_HTTPS', false),
 };

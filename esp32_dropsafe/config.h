@@ -43,6 +43,8 @@ constexpr uint32_t PUBLISH_INTERVAL_MS = 1500;
 constexpr uint32_t SEND_GAP_MS = 1200;
 // How often the network task polls an empty queue or waits for its turn.
 constexpr uint32_t QUEUE_POLL_MS = 100;
+// Back-off after a failed publish (transport error or non-429 gateway error).
+constexpr uint32_t ERROR_BACKOFF_MS = 2000;
 constexpr uint32_t HTTP_TIMEOUT_MS = 8000;
 constexpr uint32_t WIFI_RETRY_MS = 10000;
 constexpr uint32_t NTP_RETRY_MS = 60000;
