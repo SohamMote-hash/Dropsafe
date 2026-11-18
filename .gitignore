@@ -9,3 +9,6 @@ dist
 server/service-account.json
 server/*service-account*.json
 esp32_dropsafe/secrets.h
+
+.vercel
+.env*

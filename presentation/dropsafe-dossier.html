@@ -1,0 +1,1418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DropSafe — Technical Dossier</title>
+<style>
+  :root{
+    --navy:#0b1f3a; --navy2:#071427; --ink:#0f172a; --slate:#475569; --muted:#64748b;
+    --line:#dbe4ee; --line2:#e2e8f0; --paper:#f8fafc;
+    --cyan:#0891b2; --cyan2:#22d3ee; --green:#15803d; --amber:#b45309;
+    --red:#b91c1c; --violet:#6d28d9;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{margin:0;background:#eef2f7;color:#1e293b;
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-size:9.8pt;line-height:1.52}
+  .sheet{width:210mm;margin:0 auto;background:#fff;padding:14mm 14mm 10mm}
+  @media print{
+    body{background:#fff;font-size:9.6pt}
+    .sheet{width:auto;margin:0;padding:0;box-shadow:none}
+    .newpage{break-before:page}
+    .keep{break-inside:avoid}
+    h2,h3{break-after:avoid}
+    table,.card,.callout,.shot,.diagram,.metric{break-inside:avoid}
+    p{orphans:3;widows:3}
+  }
+  @page{size:A4;margin:14mm 14mm 14mm}
+
+  /* ---------- cover ---------- */
+  .cover{position:relative;overflow:hidden;border-radius:5mm;color:#fff;height:263mm;
+    padding:16mm 15mm;display:flex;flex-direction:column;justify-content:space-between;
+    background:
+      radial-gradient(95% 65% at 100% 0%, rgba(34,211,238,.22) 0%, transparent 55%),
+      radial-gradient(80% 60% at 0% 100%, rgba(8,145,178,.30) 0%, transparent 55%),
+      linear-gradient(155deg,#071427 0%,#0b1f3a 58%,#0a2540 100%)}
+  .cover:before{content:"";position:absolute;right:-55mm;top:-55mm;width:150mm;height:150mm;
+    border-radius:50%;border:0.6mm solid rgba(103,232,249,.20)}
+  .cover:after{content:"";position:absolute;right:-15mm;top:-15mm;width:95mm;height:95mm;
+    border-radius:50%;border:0.6mm solid rgba(103,232,249,.13)}
+  .brand{display:flex;align-items:center;gap:4mm;position:relative;z-index:2}
+  .mark{width:13mm;height:13mm;border-radius:3.5mm;background:rgba(34,211,238,.14);
+    border:0.35mm solid rgba(103,232,249,.35);display:flex;align-items:center;justify-content:center}
+  .mark svg{width:7mm;height:7mm}
+  .brand b{display:block;font-size:13pt;letter-spacing:.02em}
+  .brand span{display:block;font-size:8pt;color:#a5f3fc;letter-spacing:.14em;text-transform:uppercase}
+  .cover-main{position:relative;z-index:2;margin-top:8mm}
+  .eyebrow{font-size:8pt;letter-spacing:.24em;text-transform:uppercase;color:#67e8f9;font-weight:700}
+  .cover h1{font-size:58pt;line-height:.92;letter-spacing:-2pt;margin:4mm 0 3mm;font-weight:800}
+  .cover h1 em{font-style:normal;color:#67e8f9}
+  .cover .sub{font-size:19pt;line-height:1.2;font-weight:600;color:#e2e8f0;max-width:150mm}
+  .cover .lead{font-size:10.5pt;color:#cbd5e1;max-width:148mm;margin-top:5mm}
+  .chips{display:flex;flex-wrap:wrap;gap:2.5mm;margin-top:7mm}
+  .chip{font-size:7.6pt;font-weight:700;letter-spacing:.07em;padding:1.6mm 3mm;border-radius:99px;
+    background:rgba(255,255,255,.07);border:0.3mm solid rgba(255,255,255,.16);color:#e2e8f0}
+  .chip.hi{background:rgba(34,211,238,.14);border-color:rgba(103,232,249,.40);color:#a5f3fc}
+  .cover-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;position:relative;z-index:2;
+    border-top:0.3mm solid rgba(255,255,255,.18);padding-top:5mm}
+  .cover-stats .v{font-size:17pt;font-weight:800;color:#fff;line-height:1}
+  .cover-stats .l{font-size:7.2pt;text-transform:uppercase;letter-spacing:.10em;color:#94a3b8;margin-top:1.5mm}
+  .cover-foot{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:6mm}
+  .cover-foot .mono{font-size:7.4pt;color:#a5f3fc;letter-spacing:.02em}
+  .cover-foot .meta{font-size:7.6pt;color:#94a3b8;text-align:right;line-height:1.6}
+  .disclaimer{font-size:7pt;color:#94a3b8;margin-top:2mm}
+
+  /* ---------- structure ---------- */
+  .sec-head{display:flex;gap:4.5mm;align-items:flex-start;border-bottom:1mm solid var(--navy);
+    padding-bottom:3mm;margin:0 0 5mm}
+  .sec-num{flex:0 0 10.5mm;height:10.5mm;border-radius:2.5mm;background:var(--navy);
+    color:#67e8f9;font-weight:800;font-size:13pt;display:flex;align-items:center;justify-content:center}
+  .sec-kicker{font-size:7pt;letter-spacing:.16em;text-transform:uppercase;color:var(--cyan);font-weight:700;margin-bottom:1mm}
+  h2{font-size:19pt;line-height:1.08;margin:0;color:var(--navy);letter-spacing:-.3pt}
+  h3{font-size:10.8pt;color:var(--navy);margin:5.5mm 0 2mm;padding-left:2.4mm;border-left:1.4mm solid var(--cyan)}
+  h4{font-size:9.4pt;color:var(--navy);margin:3.5mm 0 1.5mm}
+  p{margin:0 0 2.4mm}
+  ul,ol{margin:0 0 3mm;padding-left:5mm}
+  li{margin-bottom:1.2mm}
+  strong{color:var(--ink)}
+  .small{font-size:8.2pt;color:var(--muted)}
+  .mono,code,pre{font-family:"Cascadia Mono",Consolas,"SFMono-Regular",monospace}
+  code{background:#f1f5f9;border:0.2mm solid #e2e8f0;border-radius:1mm;padding:.3mm 1.2mm;font-size:8.3pt;color:#0b1f3a}
+  .kicker{font-size:7pt;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:700}
+  .rule{height:0.3mm;background:var(--line2);margin:4mm 0}
+
+  /* ---------- components ---------- */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:3.5mm}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm}
+  .card{background:#fff;border:0.3mm solid var(--line);border-radius:2.6mm;padding:3.6mm 4mm}
+  .card h4{margin-top:0}
+  .card p:last-child,.card ul:last-child{margin-bottom:0}
+  .card.tint{background:linear-gradient(180deg,#fff,#f8fafc)}
+  .card.dark{background:var(--navy);color:#e2e8f0;border-color:var(--navy)}
+  .card.dark h4{color:#fff}
+  .card.dark .small{color:#94a3b8}
+  .callout{border-left:2.6mm solid var(--cyan);background:#ecfeff;padding:3mm 3.5mm;border-radius:0 2mm 2mm 0;margin:3.5mm 0}
+  .callout.warn{border-left-color:#d97706;background:#fffbeb}
+  .callout.viva{border-left-color:var(--violet);background:#f5f3ff}
+  .callout.risk{border-left-color:#dc2626;background:#fef2f2}
+  .callout b{color:var(--navy)}
+  .tag{display:inline-block;padding:.7mm 2.2mm;border-radius:99px;font-size:7.1pt;font-weight:700;letter-spacing:.05em}
+  .tag.live{background:#dcfce7;color:#166534}
+  .tag.demo{background:#e0f2fe;color:#075985}
+  .tag.warn{background:#fef3c7;color:#92400e}
+  .tag.bad{background:#fee2e2;color:#991b1b}
+  .tag.neutral{background:#f1f5f9;color:#334155}
+
+  table{width:100%;border-collapse:collapse;font-size:8.2pt;margin:2.5mm 0 4mm}
+  th{background:var(--navy);color:#fff;text-align:left;padding:2.1mm 2.3mm;font-size:7.3pt;
+    text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+  td{padding:1.9mm 2.3mm;border-bottom:0.25mm solid var(--line2);vertical-align:top}
+  tr:nth-child(even) td{background:#f8fafc}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .tbl-note{font-size:7.4pt;color:var(--muted);margin:-2mm 0 3.5mm}
+
+  pre{background:#0f172a;color:#e2e8f0;border-radius:2.4mm;padding:3.5mm 4mm;font-size:7.8pt;
+    line-height:1.52;margin:2.5mm 0 4mm;white-space:pre-wrap;overflow:hidden}
+  pre .c{color:#67e8f9}
+  pre .g{color:#86efac}
+  pre .m{color:#94a3b8}
+  .formula{background:#f8fafc;border:0.3mm solid var(--line);border-radius:2.4mm;padding:3.5mm 4mm;
+    font-family:"Cascadia Mono",Consolas,monospace;font-size:8.6pt;line-height:1.7;color:#0b1f3a}
+  .formula b{color:var(--cyan)}
+  .metric{background:linear-gradient(180deg,#fff,#f8fafc);border:0.3mm solid var(--line);
+    border-radius:2.6mm;padding:3.2mm 3.6mm}
+  .metric .v{font-size:17pt;font-weight:800;color:var(--navy);line-height:1.05;letter-spacing:-.4pt}
+  .metric .v small{font-size:8pt;font-weight:700;color:var(--muted);letter-spacing:0}
+  .metric .l{font-size:7pt;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-top:1.6mm;font-weight:700}
+
+  .shot{border:0.3mm solid #cbd5e1;border-radius:2.6mm;overflow:hidden;background:#fff}
+  .shot img{display:block;width:100%}
+  .caption{font-size:7.4pt;color:var(--muted);margin-top:1.8mm}
+
+  .flow{display:flex;align-items:stretch;gap:0;margin:3mm 0 4mm}
+  .flow .step{flex:1;border:0.3mm solid var(--line);border-radius:2.2mm;padding:2.8mm;background:#fff}
+  .flow .step .n{font-size:7pt;font-weight:800;color:var(--cyan);letter-spacing:.08em}
+  .flow .step b{display:block;font-size:8.4pt;color:var(--navy);margin:.8mm 0}
+  .flow .step span{font-size:7.4pt;color:var(--slate);line-height:1.4;display:block}
+  .flow .arw{flex:0 0 6mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12pt;font-weight:700}
+
+  .toc{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm 7mm;margin:3mm 0 0}
+  .toc a{color:inherit;text-decoration:none}
+  .toc .row{display:flex;gap:3mm;align-items:baseline;border-bottom:0.25mm solid var(--line2);padding:2mm 0}
+  .toc .n{font-size:7.5pt;font-weight:800;color:var(--cyan);width:6mm;flex:0 0 6mm}
+  .toc b{font-size:8.8pt;color:var(--navy);display:block}
+  .toc span{font-size:7.3pt;color:var(--muted);display:block;line-height:1.35}
+
+  .qa{border-top:0.25mm solid var(--line2);padding:2.6mm 0;break-inside:avoid}
+  .qa .q{font-size:8.8pt;font-weight:700;color:var(--navy);margin-bottom:1mm}
+  .qa .a{font-size:8.4pt;color:#334155}
+  .qa .a strong{color:var(--cyan)}
+  .checklist{list-style:none;padding:0;margin:2mm 0;columns:2;column-gap:8mm}
+  .checklist li{font-size:8.4pt;margin-bottom:2.2mm;break-inside:avoid}
+  .checklist li:before{content:"□";color:var(--cyan);font-weight:700;margin-right:2mm}
+  .endmark{margin-top:7mm;padding-top:3mm;border-top:0.3mm solid var(--line2);font-size:7.4pt;color:var(--muted);display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<!-- ===================== COVER ===================== -->
+<section class="cover">
+  <div class="brand">
+    <span class="mark">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2.4s7 7.6 7 12a7 7 0 1 1-14 0c0-4.4 7-12 7-12z" fill="#22d3ee" opacity=".92"/><path d="M9.2 14.6a2.9 2.9 0 0 0 2.8 2.4" stroke="#071427" stroke-width="1.4" stroke-linecap="round"/></svg>
+    </span>
+    <div><b>DropSafe</b><span>IV bag remainder monitoring</span></div>
+  </div>
+
+  <div class="cover-main">
+    <div class="eyebrow">LDM / ASEP Course Project · 2026</div>
+    <h1>Drop<em>Safe</em></h1>
+    <div class="sub">Automatic IV bag remainder monitoring from load cell to live dashboard</div>
+    <div class="lead">A load cell measures the hanging bag, an ESP32 converts weight to volume and alarms locally, and a serverless gateway publishes validated readings to Firebase for a read-only React dashboard.</div>
+    <div class="chips">
+      <span class="chip hi">LIVE ON VERCEL</span>
+      <span class="chip">TLS PINNED</span>
+      <span class="chip">SERVER-AUTHORITATIVE</span>
+      <span class="chip">OFFLINE-TOLERANT EDGE</span>
+    </div>
+  </div>
+
+  <div class="cover-stats">
+    <div><div class="v">1 Hz</div><div class="l">local sampling</div></div>
+    <div><div class="v">5 s</div><div class="l">cloud publish</div></div>
+    <div><div class="v">139</div><div class="l">passing tests</div></div>
+    <div><div class="v">~2 min</div><div class="l">offline buffer</div></div>
+  </div>
+
+  <div>
+    <div class="mono">Load cell → HX711 → ESP32 → HTTPS gateway → Firebase RTDB → React dashboard</div>
+    <div class="cover-foot" style="margin-top:4mm">
+      <div class="meta" style="text-align:left">Presenter: Soham<br>Prepared 18 November 2026 · Presentation 19 November 2026</div>
+      <div class="meta">Live deployment<br><strong style="color:#a5f3fc">dropsafe-xi.vercel.app</strong><br>Prototype v1.0</div>
+    </div>
+    <div class="disclaimer">Classroom prototype for demonstration and evaluation. Not a certified or clinical medical device.</div>
+  </div>
+</section>
+
+<!-- ===================== CONTENTS + SUMMARY ===================== -->
+<section class="newpage">
+  <div class="sec-head">
+    <div class="sec-num">00</div>
+    <div><div class="sec-kicker">Orientation</div><h2>Executive summary &amp; contents</h2></div>
+  </div>
+
+  <div class="callout">
+    <b>The 30-second pitch.</b> DropSafe turns a hanging IV bag into a connected sensor. A load cell measures the bag's weight, an ESP32 converts it to millilitres, sounds a bedside alarm when the level is low, and publishes it over HTTPS to a serverless gateway. The gateway re-derives the volume and status from the raw weight, stores it in Firebase, and a React dashboard shows live volume, flow, time-to-empty and alert history from any browser — with no credentials in the browser and no network dependency for the local alarm.
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>The problem</h4>
+      <p>IV bags are gravity-fed and are usually checked by eye at intervals. A 500 mL bag at 120 mL/h empties in about four hours, so the level between checks is unknown. Manual checks cost staff time, produce inconsistent documentation, and can delay replacement.</p>
+      <p style="margin-bottom:0">DropSafe adds continuous measurement and two independent warning paths: a local alarm at the bedside and a remote dashboard for a second observer.</p>
+    </div>
+    <div class="card">
+      <h4>The solution</h4>
+      <p>Weight is measured continuously by a 5 kg load cell and HX711 ADC. The ESP32 converts gross weight to remaining volume, classifies the level, and drives a buzzer and LED without needing Wi-Fi.</p>
+      <p style="margin-bottom:0">Readings are queued and published over authenticated HTTPS. The gateway validates, recomputes and stores them; the dashboard subscribes read-only and renders trends, thresholds and alerts.</p>
+    </div>
+  </div>
+
+  <h3>Design decisions that matter</h3>
+  <div class="grid3">
+    <div class="card tint"><h4>Edge stays safe</h4><p class="small" style="margin-bottom:0">Sampling and the buzzer/LED run in the main loop. Uploads run in a separate FreeRTOS task, so a slow or dead network cannot delay the local alarm.</p></div>
+    <div class="card tint"><h4>Server is authoritative</h4><p class="small" style="margin-bottom:0">The gateway never trusts the device's volume or status. It recomputes both from the raw weight, so a faulty or modified device cannot claim NORMAL.</p></div>
+    <div class="card tint"><h4>Browser is read-only</h4><p class="small" style="margin-bottom:0">Firebase rules allow public reads of monitoring data and deny all writes. Admin credentials and the raw device token never reach the frontend.</p></div>
+  </div>
+
+  <h3>At a glance</h3>
+  <div class="grid4">
+    <div class="metric"><div class="v">500 <small>mL</small></div><div class="l">nominal bag</div></div>
+    <div class="metric"><div class="v">1.005 <small>g/mL</small></div><div class="l">saline density</div></div>
+    <div class="metric"><div class="v">100 / 25 <small>mL</small></div><div class="l">LOW / CRITICAL</div></div>
+    <div class="metric"><div class="v">24</div><div class="l">sample offline queue</div></div>
+    <div class="metric"><div class="v">500</div><div class="l">cloud history points</div></div>
+    <div class="metric"><div class="v">60</div><div class="l">chart points</div></div>
+    <div class="metric"><div class="v">2</div><div class="l">Vercel functions</div></div>
+    <div class="metric"><div class="v">4</div><div class="l">dashboard pages</div></div>
+  </div>
+
+  <h3>Contents</h3>
+  <div class="toc">
+    <a href="#s1"><div class="row"><span class="n">01</span><span><b>Problem, objectives &amp; scope</b><span>What is being solved and what is deliberately out of scope</span></span></div></a>
+    <a href="#s2"><div class="row"><span class="n">02</span><span><b>System architecture</b><span>Six tiers, trust boundaries and why a gateway exists</span></span></div></a>
+    <a href="#s3"><div class="row"><span class="n">03</span><span><b>Hardware &amp; sensing</b><span>Components, wiring, load-cell principle and mechanics</span></span></div></a>
+    <a href="#s4"><div class="row"><span class="n">04</span><span><b>Firmware design</b><span>Execution model, timing, offline queue, alarms and TLS</span></span></div></a>
+    <a href="#s5"><div class="row"><span class="n">05</span><span><b>Processing &amp; calibration</b><span>Formulas, thresholds, two-point fit and measured results</span></span></div></a>
+    <a href="#s6"><div class="row"><span class="n">06</span><span><b>Gateway &amp; data model</b><span>Request pipeline, validation, Firebase schema and write semantics</span></span></div></a>
+    <a href="#s7"><div class="row"><span class="n">07</span><span><b>Dashboard</b><span>React layers, three transports, pages and alert behaviour</span></span></div></a>
+    <a href="#s8"><div class="row"><span class="n">08</span><span><b>End-to-end workflows</b><span>Live path, offline recovery, startup, demo and calibration</span></span></div></a>
+    <a href="#s9"><div class="row"><span class="n">09</span><span><b>Security, reliability &amp; limits</b><span>Threat model, mitigations and honest constraints</span></span></div></a>
+    <a href="#s10"><div class="row"><span class="n">10</span><span><b>Deployment &amp; operations</b><span>Vercel topology, environment variables and verification</span></span></div></a>
+    <a href="#s11"><div class="row"><span class="n">11</span><span><b>Testing &amp; results</b><span>139 tests, system checks and calibration results</span></span></div></a>
+    <a href="#s12"><div class="row"><span class="n">12</span><span><b>Presentation &amp; demo plan</b><span>Run sheet, demo script, pre-flight list and viva Q&amp;A</span></span></div></a>
+    <a href="#appA"><div class="row"><span class="n">A</span><span><b>Repository map &amp; API</b><span>Where each responsibility lives; request examples</span></span></div></a>
+    <a href="#appB"><div class="row"><span class="n">B</span><span><b>Configuration &amp; glossary</b><span>Constants, environment variables and terms</span></span></div></a>
+  </div>
+</section>
+
+<!-- ===================== 1 ===================== -->
+<section class="newpage" id="s1">
+  <div class="sec-head">
+    <div class="sec-num">01</div>
+    <div><div class="sec-kicker">Framing</div><h2>Problem, objectives &amp; scope</h2></div>
+  </div>
+
+  <h3>1.1 Problem statement</h3>
+  <p>An IV bag is a consumable with no instrumentation of its own. Staff infer the remaining volume from the drip chamber and the bag's printed scale, and record it when they happen to pass the bedside. Between observations the true level is unknown. The result is a monitoring gap: replacement can be late, documentation is sparse, and the same task competes with every other ward activity.</p>
+  <p>The project asks a narrower engineering question: <strong>can a low-cost, retrofittable load-cell rig measure a hanging bag continuously and deliver that measurement both locally and remotely, without making the local alarm depend on the network?</strong></p>
+
+  <h3>1.2 Objectives and success criteria</h3>
+  <table>
+    <thead><tr><th style="width:12mm">ID</th><th>Objective</th><th>Success criterion used in this prototype</th></tr></thead>
+    <tbody>
+      <tr><td><b>O1</b></td><td>Measure the bag continuously</td><td>Gross weight sampled at 1 Hz; volume derived from a calibrated weight-to-volume model.</td></tr>
+      <tr><td><b>O2</b></td><td>Warn locally without a network</td><td>Buzzer and LED change pattern for LOW, CRITICAL and SENSOR_FAULT with Wi-Fi disconnected.</td></tr>
+      <tr><td><b>O3</b></td><td>Expose a remote live view</td><td>Dashboard updates from Firebase in real time and shows volume, percent, flow, time-to-empty and alerts.</td></tr>
+      <tr><td><b>O4</b></td><td>Keep writes trustworthy</td><td>Only an authenticated device can POST; the gateway recomputes volume and status from weight.</td></tr>
+      <tr><td><b>O5</b></td><td>Tolerate short outages</td><td>24-sample RAM queue (about 2 minutes at a 5 s publish interval) with automatic flush on reconnect.</td></tr>
+      <tr><td><b>O6</b></td><td>Make behaviour testable</td><td>Pure calculation, validation and reducer functions covered by an automated suite (139 tests passing).</td></tr>
+      <tr><td><b>O7</b></td><td>Be demonstrable anywhere</td><td>Public HTTPS deployment plus a built-in 120× simulator as a hardware fallback.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 Functional and non-functional requirements</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>Functional</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li><b>FR1</b> Sample weight at least once per second.</li>
+        <li><b>FR2</b> Convert gross weight to remaining volume and percent.</li>
+        <li><b>FR3</b> Classify NORMAL, LOW, CRITICAL or SENSOR_FAULT.</li>
+        <li><b>FR4</b> Drive a local buzzer and status LED.</li>
+        <li><b>FR5</b> Publish a reading every 5 seconds when connected.</li>
+        <li><b>FR6</b> Show live readings, trends and alert history in a browser.</li>
+        <li><b>FR7</b> Allow an alert to be acknowledged without changing the level.</li>
+        <li><b>FR8</b> Allow thresholds and demo interval to be configured.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Non-functional</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li><b>NFR1</b> Local alarm must not depend on Wi-Fi or the cloud.</li>
+        <li><b>NFR2</b> No service-account credentials or raw device token in browser code.</li>
+        <li><b>NFR3</b> All telemetry in transit over verified TLS.</li>
+        <li><b>NFR4</b> Short network outages must not lose the current state.</li>
+        <li><b>NFR5</b> Core logic must be unit-testable without hardware.</li>
+        <li><b>NFR6</b> Must run on a free-tier serverless host.</li>
+        <li><b>NFR7</b> Dashboard must be responsive and keyboard-accessible.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>1.4 Scope, assumptions and exclusions</h3>
+  <table>
+    <thead><tr><th style="width:36mm">In scope</th><th>Out of scope (and why)</th></tr></thead>
+    <tbody>
+      <tr><td>One ESP32, one live bag (IV-01), 500 mL model</td><td>Multi-ward or multi-hospital tenancy; the prototype is single-device and single-tenant.</td></tr>
+      <tr><td>Load-cell measurement, local alarm, HTTPS upload</td><td>Infusion-pump control; DropSafe observes, it does not regulate flow.</td></tr>
+      <tr><td>Read-only public dashboard, alert acknowledgement, CSV export</td><td>Staff accounts, roles and audit trails; deliberately excluded from this prototype.</td></tr>
+      <tr><td>Built-in simulator for demos and hardware fallback</td><td>Battery operation, enclosure, OTA updates and production PCB.</td></tr>
+      <tr><td>Density-based volume estimate for 0.9% saline</td><td>Medical certification or clinical validation; this is a classroom prototype.</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note"><b>Key assumption:</b> the bag hangs freely and vertically from the load cell. If the bag rests on a surface or the tubing pulls sideways, the measured weight — and therefore the volume — is wrong. The rig was calibrated specifically to avoid that condition.</p>
+
+  <div class="callout warn"><b>What the examiner should hear:</b> DropSafe is a monitoring instrument, not a treatment device. It estimates remaining volume from weight and provides warnings; it does not claim clinical accuracy and does not control the infusion.</div>
+</section>
+
+<!-- ===================== 2 ===================== -->
+<section class="newpage" id="s2">
+  <div class="sec-head">
+    <div class="sec-num">02</div>
+    <div><div class="sec-kicker">Structure</div><h2>System architecture</h2></div>
+  </div>
+
+  <p>DropSafe is a six-tier system with two independent output paths. The sensing and edge tiers run on the rig; the gateway, storage and presentation tiers run in the cloud. The local alarm is deliberately outside the cloud path.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 1180 300" width="100%" role="img" aria-label="DropSafe architecture: load cell and HX711 to ESP32, HTTPS gateway, Firebase, React dashboard; local alarm and optional bench paths">
+      <defs>
+        <marker id="archArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+        </marker>
+      </defs>
+      <!-- row -->
+      <rect x="0" y="20" width="200" height="102" rx="11" fill="#0b1f3a"/>
+      <text x="15" y="44" fill="#67e8f9" font-size="10.5" font-weight="700" letter-spacing="1.2">SENSING</text>
+      <text x="15" y="68" fill="#ffffff" font-size="15" font-weight="700">Load cell + HX711</text>
+      <text x="15" y="89" fill="#cbd5e1" font-size="10.5">gross weight in grams</text>
+
+      <rect x="245" y="20" width="200" height="102" rx="11" fill="#0b1f3a"/>
+      <text x="260" y="44" fill="#67e8f9" font-size="10.5" font-weight="700" letter-spacing="1.2">EDGE</text>
+      <text x="260" y="68" fill="#ffffff" font-size="15" font-weight="700">ESP32</text>
+      <text x="260" y="89" fill="#cbd5e1" font-size="10.5">1 Hz sample · alarm</text>
+
+      <rect x="490" y="20" width="210" height="102" rx="11" fill="#0e7490"/>
+      <text x="505" y="44" fill="#cffafe" font-size="10.5" font-weight="700" letter-spacing="1.2">TRUST BOUNDARY</text>
+      <text x="505" y="68" fill="#ffffff" font-size="15" font-weight="700">Vercel gateway</text>
+      <text x="505" y="89" fill="#e0f2fe" font-size="10.5">auth · validate · write</text>
+
+      <rect x="745" y="20" width="190" height="102" rx="11" fill="#155e75"/>
+      <text x="760" y="44" fill="#cffafe" font-size="10.5" font-weight="700" letter-spacing="1.2">STORAGE</text>
+      <text x="760" y="68" fill="#ffffff" font-size="15" font-weight="700">Firebase RTDB</text>
+      <text x="760" y="89" fill="#e0f2fe" font-size="10.5">current · history</text>
+
+      <rect x="980" y="20" width="200" height="102" rx="11" fill="#166534"/>
+      <text x="995" y="44" fill="#dcfce7" font-size="10.5" font-weight="700" letter-spacing="1.2">PRESENTATION</text>
+      <text x="995" y="68" fill="#ffffff" font-size="15" font-weight="700">React dashboard</text>
+      <text x="995" y="89" fill="#dcfce7" font-size="10.5">charts · alerts · TTE</text>
+
+      <!-- arrows -->
+      <line x1="204" y1="71" x2="240" y2="71" stroke="#64748b" stroke-width="2" marker-end="url(#archArrow)"/>
+      <line x1="449" y1="71" x2="485" y2="71" stroke="#64748b" stroke-width="2" marker-end="url(#archArrow)"/>
+      <line x1="704" y1="71" x2="740" y2="71" stroke="#64748b" stroke-width="2" marker-end="url(#archArrow)"/>
+      <line x1="939" y1="71" x2="975" y2="71" stroke="#64748b" stroke-width="2" marker-end="url(#archArrow)"/>
+      <text x="213" y="61" fill="#475569" font-size="9.5" font-weight="600">mV</text>
+      <text x="459" y="61" fill="#475569" font-size="9.5" font-weight="600">HTTPS</text>
+      <text x="714" y="61" fill="#475569" font-size="9.5" font-weight="600">Admin</text>
+      <text x="948" y="61" fill="#475569" font-size="9.5" font-weight="600">onValue</text>
+
+      <!-- band -->
+      <rect x="0" y="170" width="1180" height="86" rx="11" fill="#f1f5f9" stroke="#dbe4ee"/>
+      <line x1="393" y1="184" x2="393" y2="242" stroke="#cbd5e1"/>
+      <line x1="786" y1="184" x2="786" y2="242" stroke="#cbd5e1"/>
+
+      <text x="20" y="196" fill="#0891b2" font-size="9.5" font-weight="700" letter-spacing="1">LOCAL ALARM</text>
+      <text x="20" y="216" fill="#0b1f3a" font-size="12" font-weight="700">Buzzer + LED</text>
+      <text x="20" y="235" fill="#64748b" font-size="9.5">independent of Wi-Fi and the cloud</text>
+
+      <text x="413" y="196" fill="#0891b2" font-size="9.5" font-weight="700" letter-spacing="1">OPTIONAL BENCH PATH</text>
+      <text x="413" y="216" fill="#0b1f3a" font-size="12" font-weight="700">USB Web Serial</text>
+      <text x="413" y="235" fill="#64748b" font-size="9.5">115200 baud · JSON lines in Chrome/Edge</text>
+
+      <text x="806" y="196" fill="#0891b2" font-size="9.5" font-weight="700" letter-spacing="1">ALWAYS AVAILABLE</text>
+      <text x="806" y="216" fill="#0b1f3a" font-size="12" font-weight="700">120× demo simulator</text>
+      <text x="806" y="235" fill="#64748b" font-size="9.5">same reducer, no hardware required</text>
+    </svg>
+  </div>
+  <div class="caption">Figure 2.1 — End-to-end architecture. The device pushes to a serverless gateway; the browser only ever reads from Firebase.</div>
+
+  <h3>2.1 Tier responsibilities</h3>
+  <table>
+    <thead><tr><th style="width:24mm">Tier</th><th style="width:34mm">Component</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><b>Sensing</b></td><td>5 kg load cell + HX711</td><td>Convert mechanical load into a digital count; provide stable gross weight through a 24-bit ADC.</td></tr>
+      <tr><td><b>Edge</b></td><td>ESP32 DevKit</td><td>Sample, tare/scale, compute volume/percent/status, drive buzzer/LED, queue and publish samples.</td></tr>
+      <tr><td><b>Transport</b></td><td>HTTPS POST</td><td>Send JSON with a device token over verified TLS; retry with backoff; never block sampling.</td></tr>
+      <tr><td><b>Gateway</b></td><td>Vercel Node function</td><td>Authenticate, rate-limit, validate, recompute volume/status, write atomically via Firebase Admin.</td></tr>
+      <tr><td><b>Storage</b></td><td>Firebase RTDB</td><td>Hold the current bag snapshot, history, device heartbeat and published configuration.</td></tr>
+      <tr><td><b>Presentation</b></td><td>React dashboard</td><td>Read-only subscription, local processing, charts, alert lifecycle, settings and exports.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>2.2 Why a write gateway instead of device-to-database writes?</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>Trust and credentials</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li>The Firebase <b>service account</b> stays server-side; it is never flashed to the device or shipped to the browser.</li>
+        <li>Only a <b>SHA-256 digest</b> of the device token exists in the gateway environment. The raw token exists only in the ESP32's git-ignored <code>secrets.h</code>.</li>
+        <li>The gateway <b>recomputes volume and status</b> from weight. A device that reports “NORMAL” with an empty bag is overruled.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Operational control</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li>One place for schema checks, timestamp sanity, range limits and rate limiting.</li>
+        <li>One place to change thresholds or the fluid model without reflashing every device.</li>
+        <li>Serverless hosting gives a permanent HTTPS hostname and removes the old local server + tunnel dependency.</li>
+        <li><b>Trade-off:</b> an extra network hop and occasional cold-start latency; acceptable at a 5 s publish interval.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>2.3 Deployment topology</h3>
+  <div class="flow">
+    <div class="step"><span class="n">BUILD</span><b>GitHub main</b><span>Push triggers a Vercel production build from the public repository.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">STATIC</span><b>Vite bundle</b><span><code>dist/</code> served from the Vercel edge; React + assets.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">FUNCTIONS</span><b>sin1</b><span><code>/api/health</code> and <code>/api/telemetry</code> run as Node 22 functions in Singapore.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">DATA</span><b>asia-southeast1</b><span>Firebase RTDB region, adjacent to the functions for lower latency.</span></div>
+  </div>
+  <p class="small" style="margin-bottom:0">The function region is pinned in <code>vercel.json</code> (<code>"regions": ["sin1"]</code>). A live response carries <code>X-Vercel-Id: …::sin1::…</code>, which is a quick way to confirm the region during the demo.</p>
+</section>
+
+<!-- ===================== 3 ===================== -->
+<section class="newpage" id="s3">
+  <div class="sec-head">
+    <div class="sec-num">03</div>
+    <div><div class="sec-kicker">Physical layer</div><h2>Hardware &amp; sensing</h2></div>
+  </div>
+
+  <h3>3.1 Components</h3>
+  <table>
+    <thead><tr><th style="width:34mm">Component</th><th style="width:15mm">Qty</th><th>Role</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><b>ESP32 DevKit</b></td><td>1</td><td>Controller, Wi-Fi, TLS client, alarm driver</td><td>Dual-core; 3.3 V logic; 115200 baud serial.</td></tr>
+      <tr><td><b>HX711 module</b></td><td>1</td><td>24-bit ADC and amplifier for the bridge</td><td>Two-wire clock/data interface; onboard regulator on common breakouts.</td></tr>
+      <tr><td><b>Load cell, 5 kg</b></td><td>1</td><td>Measures the hanging bag's gross weight</td><td>Strain-gauge bridge; rated far above the ~0.6 kg working load.</td></tr>
+      <tr><td><b>Passive buzzer</b></td><td>1</td><td>Audible local alarm</td><td>Driven by <code>tone()</code> on GPIO 4.</td></tr>
+      <tr><td><b>Status LED</b></td><td>1</td><td>Visual alarm and activity indication</td><td>GPIO 2; often the onboard LED on a DevKit.</td></tr>
+      <tr><td><b>Rigid frame / hanger</b></td><td>1</td><td>Holds the load cell and lets the bag hang freely</td><td>Must avoid side loads and bench contact.</td></tr>
+      <tr><td><b>5 V supply</b></td><td>1</td><td>Powers the ESP32 and modules</td><td>Share ground between ESP32 and HX711.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 Wiring and signal path</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 1000 260" width="100%" role="img" aria-label="Wiring: load cell to HX711 to ESP32, buzzer on GPIO 4 and LED on GPIO 2">
+      <defs>
+        <marker id="wireArrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 z" fill="#64748b"/>
+        </marker>
+      </defs>
+      <rect x="20" y="50" width="200" height="112" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.4"/>
+      <text x="36" y="78" fill="#0b1f3a" font-size="13" font-weight="700">LOAD CELL</text>
+      <text x="36" y="99" fill="#475569" font-size="10.5">5 kg · strain-gauge bridge</text>
+      <text x="36" y="118" fill="#64748b" font-size="9.5">E+ / E− excitation</text>
+      <text x="36" y="135" fill="#64748b" font-size="9.5">S+ / S− signal</text>
+
+      <rect x="300" y="50" width="190" height="112" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.4"/>
+      <text x="316" y="78" fill="#0b1f3a" font-size="13" font-weight="700">HX711</text>
+      <text x="316" y="99" fill="#475569" font-size="10.5">24-bit ADC + amplifier</text>
+      <text x="316" y="118" fill="#64748b" font-size="9.5">channel A, gain 128</text>
+      <text x="316" y="135" fill="#64748b" font-size="9.5">about 10 samples/s</text>
+
+      <rect x="570" y="40" width="230" height="150" rx="10" fill="#0b1f3a"/>
+      <text x="586" y="68" fill="#67e8f9" font-size="10" font-weight="700" letter-spacing="1">CONTROLLER</text>
+      <text x="586" y="92" fill="#ffffff" font-size="14" font-weight="700">ESP32 DevKit</text>
+      <text x="586" y="113" fill="#cbd5e1" font-size="10">Wi-Fi 2.4 GHz · FreeRTOS</text>
+      <text x="586" y="131" fill="#cbd5e1" font-size="10">1 Hz sample · 5 s publish</text>
+      <text x="586" y="149" fill="#cbd5e1" font-size="10">3.3 V logic · 115200 serial</text>
+      <text x="586" y="172" fill="#67e8f9" font-size="9.5">5 V supply · common ground</text>
+
+      <rect x="860" y="25" width="118" height="62" rx="9" fill="#fffbeb" stroke="#d97706" stroke-width="1.2"/>
+      <text x="874" y="49" fill="#92400e" font-size="12" font-weight="700">Buzzer</text>
+      <text x="874" y="68" fill="#b45309" font-size="9.5">GPIO 4</text>
+
+      <rect x="860" y="105" width="118" height="62" rx="9" fill="#f0fdf4" stroke="#15803d" stroke-width="1.2"/>
+      <text x="874" y="129" fill="#166534" font-size="12" font-weight="700">Status LED</text>
+      <text x="874" y="148" fill="#15803d" font-size="9.5">GPIO 2</text>
+
+      <line x1="224" y1="106" x2="296" y2="106" stroke="#64748b" stroke-width="1.8" marker-end="url(#wireArrow)"/>
+      <text x="232" y="96" fill="#475569" font-size="9.5">4-wire bridge</text>
+
+      <line x1="494" y1="106" x2="566" y2="106" stroke="#64748b" stroke-width="1.8" marker-end="url(#wireArrow)"/>
+      <text x="500" y="88" fill="#475569" font-size="9.5">DT → GPIO 18</text>
+      <text x="500" y="123" fill="#475569" font-size="9.5">SCK → GPIO 19</text>
+
+      <line x1="804" y1="56" x2="856" y2="56" stroke="#64748b" stroke-width="1.8" marker-end="url(#wireArrow)"/>
+      <text x="808" y="46" fill="#475569" font-size="9.5">tone</text>
+      <line x1="804" y1="136" x2="856" y2="136" stroke="#64748b" stroke-width="1.8" marker-end="url(#wireArrow)"/>
+      <text x="808" y="126" fill="#475569" font-size="9.5">drive</text>
+
+      <text x="20" y="205" fill="#64748b" font-size="9.5">The HX711 digitizes the bridge's millivolt-level differential signal; the ESP32 clocks out the result on two GPIOs.</text>
+      <text x="20" y="224" fill="#64748b" font-size="9.5">Power the HX711 per its breakout (3.3 V or 5 V) and tie its ground to the ESP32 ground.</text>
+    </svg>
+  </div>
+  <div class="caption">Figure 3.1 — Signal chain and pin assignment. The firmware uses GPIO 18/19 for HX711, GPIO 4 for the buzzer and GPIO 2 for the status LED.</div>
+
+  <h3>3.3 How the measurement works</h3>
+  <p>A load cell contains strain gauges bonded to a metal beam and wired as a Wheatstone bridge. Bending the beam changes the gauges' resistance, producing a small differential voltage proportional to load. The HX711 amplifies that signal and converts it with a 24-bit sigma-delta ADC; the ESP32 reads a signed count over a simple clock/data interface.</p>
+  <p>The firmware converts counts to grams with <code>scale.get_units(3)</code>, which averages three conversions through the HX711 library's calibration factor. The factor is the bridge between raw counts and grams: <code>grams = raw / CALIBRATION_FACTOR</code>.</p>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Why a load cell?</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li>Weight is independent of bag shape, opacity and foil packaging.</li>
+        <li>It measures the actual mass consumed, so no optical line-of-sight is needed.</li>
+        <li>Low-cost, passive sensor with no fluids in contact with electronics.</li>
+        <li>Works with the bag hanging, which is how IV therapy is already delivered.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Mechanical rules for a valid reading</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li>The bag must hang freely; bench contact removes load from the cell.</li>
+        <li>Keep tubing slack and avoid side pull on the hanger.</li>
+        <li>Tare with the cell <b>unloaded</b>; then attach the empty bag and subtract the fitted offset.</li>
+        <li>Keep the frame rigid; a flexible support introduces drift and noise.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout warn"><b>Mechanical failure mode to mention:</b> if the bag rests on the bench, the scale under-reports and the dashboard can show a false LOW or CRITICAL. This was a real debugging lesson; the final calibration and rig setup assume the bag hangs free.</div>
+</section>
+
+<!-- ===================== 4 ===================== -->
+<section class="newpage" id="s4">
+  <div class="sec-head">
+    <div class="sec-num">04</div>
+    <div><div class="sec-kicker">Edge software</div><h2>Firmware design</h2></div>
+  </div>
+
+  <h3>4.1 Execution model</h3>
+  <p>The firmware uses two execution contexts so that networking can never delay sensing or the alarm. The Arduino <code>loop()</code> owns sampling and the buzzer; a FreeRTOS task pinned to core 0 owns queue draining and HTTPS. A mutex protects the shared ring buffer.</p>
+
+  <div class="flow">
+    <div class="step"><span class="n">SETUP</span><b>Initialise</b><span>Serial, GPIO, HX711, calibration factor, optional boot tare, Wi-Fi, first sample, queue mutex.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">LOOP · 1 Hz</span><b>Sense &amp; alarm</b><span>Serial commands, Wi-Fi check, NTP, read sample, classify, drive non-blocking buzzer/LED.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">EVERY 5 s</span><b>Enqueue</b><span>Copy the current sample into the ring buffer; drop the oldest if full.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">CORE 0 TASK</span><b>Publish</b><span>Peek, HTTPS POST, pop only if still the head; back off 5 s on failure.</span></div>
+  </div>
+
+  <h3>4.2 Sample pipeline</h3>
+  <table>
+    <thead><tr><th style="width:9mm">#</th><th>Step</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Check the ADC</td><td><code>scale.is_ready()</code>; if false, the sample is a sensor fault.</td></tr>
+      <tr><td>2</td><td>Read and average</td><td><code>scale.get_units(3)</code>; reject non-finite, negative, or above <code>MAX_LOAD_G</code> (5000 g).</td></tr>
+      <tr><td>3</td><td>Compute volume</td><td><code>(weightG − EMPTY_BAG_TARE_G) / FLUID_DENSITY_G_PER_ML</code>, clamped at 0.</td></tr>
+      <tr><td>4</td><td>Compute percent</td><td><code>volumeMl / INITIAL_VOLUME_ML × 100</code>, clamped to 0–100.</td></tr>
+      <tr><td>5</td><td>Classify</td><td>CRITICAL ≤ 25 mL, LOW ≤ 100 mL, otherwise NORMAL; invalid sample becomes SENSOR_FAULT.</td></tr>
+      <tr><td>6</td><td>Populate metadata</td><td>RSSI, uptime, device timestamp, sequence number, alarm flag.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.3 Timing and buffers</h3>
+  <table>
+    <thead><tr><th>Constant</th><th class="num" style="width:24mm">Value</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>SAMPLE_INTERVAL_MS</code></td><td class="num">1000</td><td>Local weight sample and status refresh (1 Hz).</td></tr>
+      <tr><td><code>PUBLISH_INTERVAL_MS</code></td><td class="num">5000</td><td>One queued cloud sample every 5 s.</td></tr>
+      <tr><td><code>OFFLINE_QUEUE_SIZE</code></td><td class="num">24</td><td>About 2 minutes of samples at 5 s spacing; oldest dropped when full.</td></tr>
+      <tr><td><code>HTTP_TIMEOUT_MS</code></td><td class="num">8000</td><td>Connect and read timeout for each POST.</td></tr>
+      <tr><td><code>FLUSH_INTERVAL_MS</code></td><td class="num">1000</td><td>Pace between successful queue drains after a reconnect.</td></tr>
+      <tr><td><code>WIFI_RETRY_MS</code></td><td class="num">10000</td><td>Wi-Fi reconnect attempt interval.</td></tr>
+      <tr><td><code>NTP_RETRY_MS</code></td><td class="num">60000</td><td>Time-sync retry until the clock is valid.</td></tr>
+      <tr><td>Gateway backoff</td><td class="num">5000</td><td>Wait after a failed POST; sampling continues.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4.4 The offline queue</h3>
+  <p>The queue is a fixed-size ring buffer of <code>Sample</code> structs with <code>head</code>, <code>count</code> and a monotonically increasing <code>seq</code>. The producer is the 1 Hz loop; the consumer is the network task. Every access is wrapped in <code>queueMutex</code>.</p>
+  <ul>
+    <li><b>Overflow policy:</b> drop the oldest sample, never the newest. A short outage loses the beginning of the gap, not the current state.</li>
+    <li><b>Safe removal:</b> the network task only removes the head if its <code>seq</code> still matches what it sent (<code>popIfHead(seq)</code>). If the producer overwrote it, the newer sample stays queued.</li>
+    <li><b>Why this matters:</b> a dead gateway cannot stall the sampling loop, the buzzer, or the LED. The local alarm is independent of the queue.</li>
+  </ul>
+
+  <h3>4.5 Local alarm behaviour</h3>
+  <table>
+    <thead><tr><th>Status</th><th>Buzzer pattern</th><th>Tone</th><th>LED</th></tr></thead>
+    <tbody>
+      <tr><td><b>NORMAL</b></td><td>Silent</td><td>—</td><td>Off</td></tr>
+      <tr><td><b>LOW</b></td><td>150 ms on every 2 s</td><td>1800 Hz</td><td>Follows buzzer</td></tr>
+      <tr><td><b>CRITICAL</b></td><td>250 ms on every 500 ms</td><td>2500 Hz</td><td>Follows buzzer</td></tr>
+      <tr><td><b>SENSOR_FAULT</b></td><td>100 ms on every 1 s</td><td>1800 Hz</td><td>Follows buzzer</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">The alarm is non-blocking: <code>millis() % period &lt; onMs</code> decides the output state on every loop pass, so serial handling, Wi-Fi checks and sampling keep running. A state change resets the output before the new pattern begins.</p>
+
+  <h3>4.6 Connectivity, time and TLS</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>Connection lifecycle</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li>Station mode with auto-reconnect; explicit re-begin every 10 s if disconnected.</li>
+        <li>NTP (<code>pool.ntp.org</code>, <code>time.google.com</code>) runs after Wi-Fi is up; retries every 60 s.</li>
+        <li>Before time sync, the device sends timestamp <code>0</code>; the gateway stamps the reading with server time.</li>
+        <li>Whole-second timestamps keep history keys stable across retries.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Transport security</h4>
+      <ul class="small" style="margin-bottom:0">
+        <li><code>WiFiClientSecure</code> with the gateway root CA pinned via <code>setCACert(ROOT_CA)</code>.</li>
+        <li><code>TLS_INSECURE 0</code> in production — certificate verification is never disabled.</li>
+        <li>Vercel's <code>*.vercel.app</code> chain was verified to <b>GTS Root R1</b>; that root is the pinned anchor.</li>
+        <li>Every request carries <code>X-Device-Token</code>; only its SHA-256 digest is stored server-side.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>4.7 Serial calibration interface</h3>
+  <pre><span class="c">status</span>            → weight, volume, percent and current status
+<span class="c">raw</span>               → raw HX711 count and current calibrated units
+<span class="c">tare</span>              → zero the scale (load cell MUST be unloaded)
+<span class="c">cal &lt;known_grams&gt;</span> → with a known weight placed, print the new factor</pre>
+  <p class="small" style="margin-bottom:0">The calibration factor is compiled into <code>config.h</code>. The serial command prints a candidate; it does not persist it, so a refit is a deliberate code change plus a reflash.</p>
+</section>
+
+<!-- ===================== 5 ===================== -->
+<section class="newpage" id="s5">
+  <div class="sec-head">
+    <div class="sec-num">05</div>
+    <div><div class="sec-kicker">Measurement model</div><h2>Processing, thresholds &amp; calibration</h2></div>
+  </div>
+
+  <h3>5.1 The weight-to-volume model</h3>
+  <div class="formula">
+    remaining volume (mL) = (gross weight (g) − <b>EMPTY_BAG_TARE_G</b>) ÷ <b>FLUID_DENSITY_G_PER_ML</b><br>
+    remaining percent = clamp( volume ÷ INITIAL_VOLUME_ML × 100 , 0 , 100 )<br>
+    flow (mL/h) = (earlier volume − later volume) ÷ (elapsed hours)<br>
+    time to empty (h) = remaining volume ÷ flow
+  </div>
+  <p style="margin-top:3mm">The model assumes 0.9% saline at <b>1.005 g/mL</b> and a 500 mL nominal bag. <code>EMPTY_BAG_TARE_G</code> is a <b>fitted zero offset</b>, not the physical mass of the plastic bag. It is valid only together with the calibration factor; the two must be refitted as a pair.</p>
+
+  <h3>5.2 Threshold classification</h3>
+  <table>
+    <thead><tr><th>Condition</th><th>Status</th><th>Meaning in the UI</th><th>Local output</th></tr></thead>
+    <tbody>
+      <tr><td>volume &gt; 100 mL</td><td><span class="tag live">NORMAL</span></td><td>Above the low threshold</td><td>Silent</td></tr>
+      <tr><td>25 mL &lt; volume ≤ 100 mL</td><td><span class="tag warn">LOW</span></td><td>Approaching exhaustion</td><td>Slow beep</td></tr>
+      <tr><td>volume ≤ 25 mL</td><td><span class="tag bad">CRITICAL</span></td><td>Immediate attention</td><td>Fast high beep</td></tr>
+      <tr><td>weight invalid / sensor not ready</td><td><span class="tag neutral">SENSOR_FAULT</span></td><td>Volume and flow are unreliable</td><td>Low periodic buzz</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">Thresholds are configurable in Settings and on the gateway. At a 500 mL nominal volume, 100 mL is 20% and 25 mL is 5%. These are classroom demonstration values, not clinical recommendations.</p>
+
+  <h3>5.3 Flow estimation and time-to-empty</h3>
+  <p>The dashboard estimates flow from the newest <b>six valid points</b> in the history. It walks backwards from the newest sample, skips faulty samples, and stops at a <b>discontinuity</b> marker (a manual level change, reset, or source switch) so an artificial jump is never interpreted as flow. It rejects a rising level, a negative rate, and anything above <b>2000 mL/h</b>. Time-to-empty is then <code>volume / flow</code>; it is shown as unavailable when flow cannot be trusted.</p>
+  <div class="grid3">
+    <div class="card tint"><h4>Noise handling</h4><p class="small" style="margin-bottom:0">Three ADC conversions are averaged per sample. The demo adds ±0.3 g of measurement noise and ±3% drip variation to exercise the pipeline.</p></div>
+    <div class="card tint"><h4>Alert de-bouncing</h4><p class="small" style="margin-bottom:0">An alert is created only when the <b>status changes</b>, not on every sample. This prevents a noisy threshold crossing from flooding the history.</p></div>
+    <div class="card tint"><h4>Clamping</h4><p class="small" style="margin-bottom:0">Volume never goes negative and percent never exceeds 100, so a slightly over-full bag or an empty bag still produces a sensible display.</p></div>
+  </div>
+
+  <h3>5.4 Two-point calibration</h3>
+  <p>The rig is calibrated from two stable, independently measured states: the emptied hanging assembly and the full bag. Both the factor and the tare are fitted together.</p>
+  <div class="formula">
+    raw = gross grams × current factor<br>
+    <b>new factor</b> = (raw_full − raw_empty) ÷ (known_full_mL × fluid density)<br>
+    <b>tare</b> = raw_empty ÷ new factor
+  </div>
+  <div class="grid2" style="margin-top:4mm">
+    <div class="card">
+      <h4>Values in use</h4>
+      <table style="margin:0">
+        <tbody>
+          <tr><td><code>CALIBRATION_FACTOR</code></td><td class="num"><b>187.9</b></td></tr>
+          <tr><td><code>EMPTY_BAG_TARE_G</code></td><td class="num"><b>95.6 g</b></td></tr>
+          <tr><td><code>FLUID_DENSITY_G_PER_ML</code></td><td class="num">1.005</td></tr>
+          <tr><td><code>INITIAL_VOLUME_ML</code></td><td class="num">500 mL</td></tr>
+          <tr><td><code>MAX_LOAD_G</code></td><td class="num">5000 g</td></tr>
+          <tr><td><code>LOW_ML / CRITICAL_ML</code></td><td class="num">100 / 25 mL</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Measured check</h4>
+      <table style="margin:0">
+        <thead><tr><th>Test state</th><th class="num">Displayed</th><th class="num">Reference</th></tr></thead>
+        <tbody>
+          <tr><td>Empty hanging assembly (~87.9 g)</td><td class="num">0 mL</td><td class="num">0 mL</td></tr>
+          <tr><td>Mid-bag fill</td><td class="num">~248 mL</td><td class="num">250 mL</td></tr>
+          <tr><td>Full bag (~591 g gross)</td><td class="num">~492 mL</td><td class="num">500 mL</td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin:2mm 0 0">Endpoint error is about 1.6% of a 500 mL bag; mid-scale error is under 1%. Values from the rig calibration log.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <b>Calibration is a four-place invariant.</b> The factor and tare are duplicated in the ESP32 <code>config.h</code>, the dashboard <code>src/lib/calculations.ts</code>, the gateway <code>.env</code>, and the documented constants. Changing one without the others produces a dashboard that disagrees with the stored history. <code>.env.example</code> is a template and may not contain the rig's fitted values.
+  </div>
+
+  <div class="callout viva">
+    <b>Viva tip — the calibration story.</b> An earlier attempt treated the tare as the physical bag mass (~30 g) and mis-scaled everything above 200 mL. The fix was to fit <b>both</b> the factor and the zero offset from the empty and full endpoints, then verify at mid-scale. If asked “what was the hardest bug?”, this is the answer: not the electronics, but separating the bag's mass, the hanging assembly's offset, and the ADC's scaling.
+  </div>
+</section>
+
+<!-- ===================== 6 ===================== -->
+<section class="newpage" id="s6">
+  <div class="sec-head">
+    <div class="sec-num">06</div>
+    <div><div class="sec-kicker">Cloud write path</div><h2>Gateway &amp; data model</h2></div>
+  </div>
+
+  <p>The gateway is an Express app in <code>server/index.js</code>. Locally it listens on port 8787; on Vercel the same app is exported through <code>server/vercel.js</code> and mounted at two routes, so there is one implementation and one set of tests.</p>
+
+  <h3>6.1 Request pipeline</h3>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Helmet</b><span>Security headers; <code>x-powered-by</code> disabled.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">2</span><b>CORS + JSON</b><span>Allowlisted origins or no-origin device requests; 16 kb body limit.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">3</span><b>HTTPS</b><span><code>REQUIRE_HTTPS=true</code> rejects insecure requests.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">4</span><b>Token</b><span>SHA-256 digest compared in constant time.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">5</span><b>Rate limit</b><span>One accepted write per second by default.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">6</span><b>Validate</b><span>Schema, ranges, timestamps; recompute volume/status.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">7</span><b>Write</b><span>Atomic multi-path update through Firebase Admin.</span></div>
+  </div>
+
+  <h3>6.2 Endpoints</h3>
+  <table>
+    <thead><tr><th style="width:38mm">Route</th><th style="width:18mm">Method</th><th>Success</th><th>Failure modes</th></tr></thead>
+    <tbody>
+      <tr><td><code>/api/health</code></td><td>GET</td><td><code>200 {"ok":true,"service":"dropsafe-gateway"}</code></td><td>—</td></tr>
+      <tr><td><code>/api/telemetry</code></td><td>POST</td><td><code>202</code> with recordedAt, status, currentUpdated</td><td><code>400</code> validation · <code>401</code> token · <code>429</code> rate limit · <code>503</code> storage · <code>413</code> body too large</td></tr>
+      <tr><td>anything else</td><td>—</td><td>—</td><td><code>404 {"ok":false,"error":"Not found."}</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>6.3 Device authentication</h3>
+  <ul>
+    <li><code>npm run device-token</code> generates a random 32-byte token (64 hex characters), prints it once for <code>secrets.h</code>, and prints its SHA-256 digest for the gateway environment.</li>
+    <li>The gateway stores only <code>DEVICE_TOKEN_SHA256</code>. It hashes the presented header and compares with <code>timingSafeEqual</code>, so a wrong token does not leak information through timing.</li>
+    <li>Missing, empty or malformed tokens return <b>401</b> before any body parsing or database work.</li>
+  </ul>
+
+  <h3>6.4 Validation rules</h3>
+  <table>
+    <thead><tr><th style="width:38mm">Field</th><th>Rule applied by the gateway</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>deviceId</code></td><td>Must exactly match the configured device</td><td>400 if unknown</td></tr>
+      <tr><td><code>bagId</code></td><td>Must exactly match the configured bag</td><td>400 if unknown</td></tr>
+      <tr><td><code>weightG</code></td><td>Finite, 0–5000 g, or null</td><td>400 if out of range</td></tr>
+      <tr><td><code>sensorOk</code></td><td>Defaults true; a null weight forces a fault</td><td>SENSOR_FAULT</td></tr>
+      <tr><td><code>volumeMl</code>, <code>percent</code></td><td><b>Ignored</b>; recomputed from weight</td><td>Server-authoritative values stored</td></tr>
+      <tr><td><code>recordedAt</code></td><td>Finite; clamped to now − 24 h … now + 5 min</td><td>Server time if invalid</td></tr>
+      <tr><td><code>rssi</code></td><td>−120 to 0 dBm</td><td>null if invalid</td></tr>
+      <tr><td><code>uptimeSec</code></td><td>0 to 1 × 10⁹</td><td>null if invalid</td></tr>
+      <tr><td><code>publishIntervalSec</code></td><td>1 to 3600 s</td><td>Default 5 if invalid</td></tr>
+      <tr><td><code>firmware</code></td><td>Sanitised, max 40 chars</td><td>null if empty</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <b>The trust boundary in one sentence:</b> the device may report a weight, but it cannot report a healthy status. Volume, percent and status are always derived on the server from the validated weight and the server's own thresholds.
+  </div>
+
+  <h3>6.5 Firebase Realtime Database schema</h3>
+  <pre>monitoring/
+├─ config/                       <span class="m">published once per gateway process</span>
+│  ├─ schemaVersion: 1
+│  ├─ bagId, deviceId
+│  ├─ thresholds: { lowMl: 100, criticalMl: 25 }
+│  ├─ initialVolumeMl, emptyBagTareG, fluidDensityGPerMl, maxLoadG
+│  └─ historyLimit, updatedAt
+├─ bags/
+│  └─ IV-01/                     <span class="m">current snapshot, only written when newer</span>
+│     ├─ bagId, deviceId
+│     ├─ weightG, volumeMl, percent, status, sensorOk, alarm
+│     ├─ thresholds, initialVolumeMl
+│     └─ recordedAt, updatedAt, receivedAt
+├─ history/
+│  └─ IV-01/
+│     └─ &lt;recordedAt&gt;/            <span class="m">key = device timestamp → retries are idempotent</span>
+│        ├─ t, weightG, volumeMl, percent, status
+│        └─ sensorOk, receivedAt
+└─ device/
+   └─ dropsafe-01/               <span class="m">heartbeat, not a reading</span>
+      ├─ id, bagId, online: true
+      ├─ lastSeen, lastRecordedAt
+      └─ firmware, rssi, uptimeSec, publishIntervalSec, alarm, sensorOk</pre>
+
+  <h3>6.6 Write semantics</h3>
+  <ul>
+    <li><b>One atomic update:</b> history, current bag and device heartbeat are written in a single multi-path <code>update()</code>. A reader never sees a half-written sample.</li>
+    <li><b>Idempotent history:</b> the history key is the device timestamp. If a reconnect retries the same sample, it overwrites the same key rather than duplicating it.</li>
+    <li><b>Monotonic current state:</b> the current bag snapshot is only replaced when <code>recordedAt</code> is at least as new as the stored value. An old queued sample cannot roll the display backwards.</li>
+    <li><b>Retention:</b> every 20 accepted writes, the oldest history is pruned to the configured 500 points. The counter is per serverless instance, so retained size can briefly exceed 500.</li>
+    <li><b>Offline heartbeat:</b> <code>online</code> is set true on each write; the dashboard infers staleness from <code>lastSeen</code> rather than trusting a persistent flag.</li>
+  </ul>
+
+  <h3>6.7 Security rules</h3>
+  <pre>{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "monitoring": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}</pre>
+  <p class="small" style="margin-bottom:0">Browsers can read <code>monitoring/…</code> without a login, but cannot write anywhere. The gateway's Admin SDK bypasses these rules; no Admin credential is present in frontend code or <code>VITE_*</code> variables.</p>
+</section>
+
+<!-- ===================== 7 ===================== -->
+<section class="newpage" id="s7">
+  <div class="sec-head">
+    <div class="sec-num">07</div>
+    <div><div class="sec-kicker">User layer</div><h2>Dashboard architecture</h2></div>
+  </div>
+
+  <h3>7.1 Stack and layering</h3>
+  <table>
+    <thead><tr><th style="width:32mm">Layer</th><th>Technology</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><b>View</b></td><td>React 18.3, TypeScript 5.7</td><td>Pages, cards, charts, dialogs, banners, keyboard/ARIA behaviour.</td></tr>
+      <tr><td><b>State</b></td><td>Context + <code>useReducer</code></td><td><code>MonitorContext</code> exposes state, alarms and actions; all updates go through a pure reducer.</td></tr>
+      <tr><td><b>Domain</b></td><td><code>lib/calculations</code>, <code>processing</code>, <code>status</code></td><td>Volume, percent, flow, TTE, classification, alert edges — no React, no browser APIs.</td></tr>
+      <tr><td><b>Transport</b></td><td><code>data/firebaseProvider</code>, Web Serial, simulator</td><td>Produce <code>SensorReading</code> objects so the rest of the app never knows the source.</td></tr>
+      <tr><td><b>Build/style</b></td><td>Vite 6, Tailwind 4, Recharts 2.15, lucide-react</td><td>Bundle, utility styling, charts and icons.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="flow">
+    <div class="step"><span class="n">INPUT</span><b>Transport</b><span>Simulator, Web Serial or Firebase RTDB.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">NORMALISE</span><b>SensorReading</b><span>One shape: bagId, timestamp, simSeconds, weightG.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">REDUCER</span><b>processReading</b><span>Volume, history, flow, status, alert edge.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">VIEW</span><b>Pages</b><span>Overview, Live, History, Settings.</span></div>
+  </div>
+
+  <h3>7.2 Three transports, one pipeline</h3>
+  <table>
+    <thead><tr><th style="width:28mm">Source</th><th>How it works</th><th>When it is used</th><th>Constraint</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag demo">SIMULATED</span></td><td>Internal demo bag drains at a configurable rate; time runs 120× faster than real time.</td><td>Default demo, hardware fallback, UI testing.</td><td>Not real data; always labelled DEMO.</td></tr>
+      <tr><td><span class="tag live">FIREBASE</span></td><td>Read-only <code>onValue</code> listeners on the bag, device and <code>.info/connected</code>; history loaded once.</td><td>Production path; auto-connects when a database URL is configured.</td><td>Public read rules; no login.</td></tr>
+      <tr><td><span class="tag neutral">HARDWARE</span></td><td>Web Serial at 115200 baud, parsing JSON lines with <code>bagId</code> and <code>weightG</code>.</td><td>Bench work in Chrome/Edge on localhost or HTTPS.</td><td>Requires a user gesture; mutually exclusive with cloud mode.</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">The production firmware's primary path is HTTPS to the gateway. The Web Serial path expects a JSON-line bridge sketch; it is a bench/debug transport, not the deployed telemetry path.</p>
+
+  <h3>7.3 State and reducer</h3>
+  <p><code>MonitorState</code> holds <code>bags</code>, <code>bagConfigs</code>, demo <code>sims</code>, <code>alerts</code>, <code>settings</code>, <code>running</code>, <code>selectedBagId</code> and <code>source</code>. Every control dispatches an action; nothing edits a bag directly. Because the reducer is pure, the same logic is exercised by the simulator, USB readings and cloud snapshots.</p>
+  <pre>Monitoring: TICK · SENSOR_READING · SET_SOURCE · ADD_BAG · HYDRATE_HISTORY
+Session:    SET_RUNNING · SELECT_BAG · RESET_BAG · MANUAL_REDUCE
+Demo:       SIM_LEVEL · SIM_FAULT · RESTORE_NORMAL
+Alerts:     ACK_BAG · ACK_ALERT · CLEAR_ALERTS
+Config:     UPDATE_SETTINGS</pre>
+  <p class="small" style="margin-bottom:0"><b>Pause really pauses:</b> ticks are only scheduled when the source is SIMULATED, the demo is running, and auto-updates are on. Cloud and USB readings are never suppressed by the demo pause.</p>
+
+  <h3>7.4 Pages and what each one proves</h3>
+  <table>
+    <thead><tr><th style="width:32mm">Page</th><th>Contents</th><th>Demo value</th></tr></thead>
+    <tbody>
+      <tr><td><b>Overview</b></td><td>Summary counts, one card per bag, status distribution and remaining-fluid bars, add-bag dialog.</td><td>Shows the whole fleet at a glance and the live/demo distinction.</td></tr>
+      <tr><td><b>Live Monitoring</b></td><td>Fluid-level gauge with threshold lines, six metric tiles, device-link state, volume and flow charts, demo controls.</td><td>The main technical demo: volume, flow, time-to-empty, alarms and source switching.</td></tr>
+      <tr><td><b>Alert History</b></td><td>Filterable table, acknowledge action, CSV export, clear-history confirmation.</td><td>Shows the edge-triggered alert model and operator acknowledgement.</td></tr>
+      <tr><td><b>Settings</b></td><td>LOW/CRITICAL thresholds, update interval, sound and auto-update toggles, validation.</td><td>Shows that monitoring policy is configurable without a reflash.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="shot" style="margin-top:4mm">
+    <img src="assets/ui-live.png" alt="DropSafe Live Monitoring page in demo mode">
+  </div>
+  <div class="caption">Figure 7.1 — Live Monitoring in demo mode: fluid gauge with threshold lines, metric tiles, source status and trend charts. The same page renders Firebase data; the tag changes from DEMO DATA to LIVE DATA.</div>
+
+  <h3>7.5 Alert semantics</h3>
+  <ul>
+    <li><b>Edge-triggered:</b> an alert record is created only when a bag <b>changes into</b> LOW, CRITICAL or SENSOR_FAULT. Staying in the same state does not create duplicates.</li>
+    <li><b>Acknowledge ≠ resolve:</b> acknowledging silences the browser tone and marks the record, but does not change the fluid status. A new status change creates a new unacknowledged alert.</li>
+    <li><b>Severity ordering:</b> CRITICAL (3) &gt; SENSOR_FAULT (2) &gt; LOW (1). The most urgent unacknowledged alarm drives the sound.</li>
+    <li><b>Sound is opt-in:</b> browsers require a user gesture, so sound starts off. Alarm patterns repeat every 5 s (LOW), 1.8 s (CRITICAL) and 3.5 s (SENSOR_FAULT).</li>
+  </ul>
+
+  <div class="grid2">
+    <div class="card">
+      <h4>Cloud link states</h4>
+      <p class="small" style="margin-bottom:0">SIMULATED · USB · WAITING (connected, no device yet) · ONLINE · STALE · OFFLINE (socket down). Staleness uses <code>max(30 s, 3 × publishInterval)</code>, so a 5 s publisher is marked stale after 30 s without a server timestamp.</p>
+    </div>
+    <div class="card">
+      <h4>Persistence and UX</h4>
+      <p class="small" style="margin-bottom:0">Settings, alerts and added bag configs persist in <code>localStorage</code> with validation and try/catch. The UI uses hash routing, responsive sidebar, ARIA labels, reduced-motion support, toasts and an error boundary.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8 ===================== -->
+<section class="newpage" id="s8">
+  <div class="sec-head">
+    <div class="sec-num">08</div>
+    <div><div class="sec-kicker">Behaviour over time</div><h2>End-to-end workflows</h2></div>
+  </div>
+
+  <h3>8.1 Live telemetry, step by step</h3>
+  <table>
+    <thead><tr><th style="width:9mm">#</th><th style="width:48mm">Where</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Load cell / HX711</td><td>The bridge produces a differential voltage; the ADC converts it to a signed count.</td></tr>
+      <tr><td>2</td><td>ESP32 loop</td><td>Averages 3 conversions, applies factor and tare, computes volume, percent and status.</td></tr>
+      <tr><td>3</td><td>ESP32 alarm</td><td>Drives the buzzer/LED pattern from the current status, independent of the network.</td></tr>
+      <tr><td>4</td><td>ESP32 queue</td><td>Every 5 s, copies the current sample into the mutex-protected ring buffer.</td></tr>
+      <tr><td>5</td><td>Network task</td><td>Peeks the head, builds JSON, adds <code>X-Device-Token</code>, POSTs over TLS.</td></tr>
+      <tr><td>6</td><td>Vercel gateway</td><td>Helmet/CORS/HTTPS, token check, rate limit, schema validation.</td></tr>
+      <tr><td>7</td><td>Vercel gateway</td><td>Recomputes volume, percent and status from weight; stamps <code>receivedAt</code>.</td></tr>
+      <tr><td>8</td><td>Firebase</td><td>Atomic multi-path update: history key, current bag (if newer), device heartbeat.</td></tr>
+      <tr><td>9</td><td>Dashboard</td><td><code>onValue</code> fires with the new bag snapshot; the reducer processes the weight.</td></tr>
+      <tr><td>10</td><td>Dashboard</td><td>Gauge, tiles and charts re-render; a status edge may create an alert and sound.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.2 What happens when the network fails</h3>
+  <table>
+    <thead><tr><th style="width:30mm">Time</th><th>Device</th><th>Dashboard</th></tr></thead>
+    <tbody>
+      <tr><td><b>t = 0</b></td><td>Wi-Fi drops. Sampling and the local alarm continue unchanged.</td><td>Last known values remain; link becomes OFFLINE when the RTDB socket drops.</td></tr>
+      <tr><td><b>0–2 min</b></td><td>Samples enter the 24-slot ring buffer; oldest are dropped after that.</td><td>No new values; a stale/offline banner explains that the device is still alarming locally.</td></tr>
+      <tr><td><b>Reconnect</b></td><td>Network task drains the queue one sample per second, oldest first.</td><td>History updates; the current snapshot only moves forward because older samples are ignored.</td></tr>
+      <tr><td><b>Normal</b></td><td>Returns to a 5 s publish cadence; the queue empties.</td><td>Link returns to ONLINE after the next heartbeat/timestamp.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.3 Dashboard startup sequence</h3>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Local state</b><span>Load settings, alerts and added bag configs from localStorage.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">2</span><b>Initial sample</b><span>Create the demo bag and take one reading so the UI never starts blank.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">3</span><b>Cloud connect</b><span>If configured, subscribe to connection, device and bag.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">4</span><b>First snapshot</b><span>Switch to FIREBASE, clear demo history, process the live weight.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">5</span><b>History</b><span>Load the last 60 points and merge by timestamp.</span></div>
+  </div>
+
+  <h3>8.4 Demo workflow (simulator)</h3>
+  <p>The demo bag starts at <b>420 mL</b> and drains at <b>120 mL/h</b>, but simulated time runs <b>120×</b>: with the default 2 s interval, each tick advances four simulated minutes. A full bag therefore empties in roughly two minutes of real time, which is what makes a live classroom demo practical.</p>
+  <div class="grid3">
+    <div class="card tint"><h4>Inject a level</h4><p class="small" style="margin-bottom:0"><b>Simulate LOW</b> sets the level halfway between the thresholds; <b>Simulate CRITICAL</b> sets it to 60% of the critical threshold.</p></div>
+    <div class="card tint"><h4>Inject a fault</h4><p class="small" style="margin-bottom:0"><b>Simulate sensor fault</b> emits a null weight, which becomes SENSOR_FAULT in the same pipeline as a disconnected HX711.</p></div>
+    <div class="card tint"><h4>Recover</h4><p class="small" style="margin-bottom:0"><b>Restore normal</b> clears the fault and lifts the level above LOW so the recovery path can be shown.</p></div>
+  </div>
+
+  <h3>8.5 Alert lifecycle</h3>
+  <ol>
+    <li><b>Normal → LOW:</b> a status change creates one unacknowledged LOW alert; the dashboard and device both alarm.</li>
+    <li><b>Acknowledge:</b> the operator silences the alarm. The bag remains LOW; the record is marked acknowledged.</li>
+    <li><b>LOW → CRITICAL:</b> a new alert is created and acknowledgement resets; CRITICAL outranks LOW for sound.</li>
+    <li><b>Refill / restore:</b> a status change back to NORMAL closes the alarm condition. Historical alerts remain in the table.</li>
+    <li><b>Sensor fault:</b> any invalid weight produces SENSOR_FAULT; last valid volume is retained for context but flagged unreliable.</li>
+  </ol>
+
+  <h3>8.6 Calibration workflow</h3>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><b>Unload</b><span>Remove the bag; the cell must have no load.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">2</span><b>Tare</b><span>Send <code>tare</code>; the current offset becomes zero.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">3</span><b>Known weight</b><span>Place a known mass, send <code>cal &lt;grams&gt;</code>; note the factor.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">4</span><b>Fit both</b><span>Use empty and full endpoints to fit factor and tare together.</span></div>
+    <div class="arw">→</div>
+    <div class="step"><span class="n">5</span><b>Verify</b><span>Check empty, mid and full; update all copies.</span></div>
+  </div>
+</section>
+
+<!-- ===================== 9 ===================== -->
+<section class="newpage" id="s9">
+  <div class="sec-head">
+    <div class="sec-num">09</div>
+    <div><div class="sec-kicker">Assurance</div><h2>Security, reliability &amp; limitations</h2></div>
+  </div>
+
+  <h3>9.1 Threat model and mitigations</h3>
+  <table>
+    <thead><tr><th style="width:42mm">Threat</th><th>Mitigation in DropSafe</th><th>Residual risk</th></tr></thead>
+    <tbody>
+      <tr><td><b>Device impersonation</b></td><td>32-byte token in <code>X-Device-Token</code>; only its SHA-256 digest is stored; constant-time comparison.</td><td>One shared token; theft of the device exposes it.</td></tr>
+      <tr><td><b>Forged “healthy” reading</b></td><td>Server ignores device volume/status and recomputes both from weight and server thresholds.</td><td>A forged in-range weight is indistinguishable from a real one.</td></tr>
+      <tr><td><b>Unauthorised database writes</b></td><td>Rules deny writes at the root and on <code>monitoring</code>; only the Admin SDK writes.</td><td>Admin credential compromise is out of scope.</td></tr>
+      <tr><td><b>Secret leakage</b></td><td><code>.env</code>, service account and <code>secrets.h</code> are git-ignored; only <code>VITE_*</code> values reach the browser.</td><td>Public repository requires discipline; history is not rewritten.</td></tr>
+      <tr><td><b>Man-in-the-middle</b></td><td>HTTPS with a pinned GTS Root R1; <code>TLS_INSECURE 0</code>; gateway rejects non-HTTPS.</td><td>Device clock/CA mistakes cause connection failure, not silent downgrade.</td></tr>
+      <tr><td><b>Replay / duplicate samples</b></td><td>History key is the timestamp; current state only moves forward; atomic update.</td><td>A replayed <i>newer</i> timestamp could still overwrite.</td></tr>
+      <tr><td><b>Alert suppression</b></td><td>Acknowledgement never changes status; server status is independent of the browser.</td><td>An operator can silence the local sound at the device.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>9.2 Reliability features</h3>
+  <div class="grid3">
+    <div class="card tint"><h4>Local-first alarm</h4><p class="small" style="margin-bottom:0">Buzzer and LED are driven in the main loop, not by the cloud callback. Losing Wi-Fi does not silence the bedside alarm.</p></div>
+    <div class="card tint"><h4>Bounded buffering</h4><p class="small" style="margin-bottom:0">A 24-slot queue absorbs about two minutes of outage; overflow drops the oldest sample, preserving the current state.</p></div>
+    <div class="card tint"><h4>Atomic persistence</h4><p class="small" style="margin-bottom:0">History, current state and heartbeat commit together; timestamp-keyed history makes retries idempotent.</p></div>
+    <div class="card tint"><h4>Stale detection</h4><p class="small" style="margin-bottom:0">The dashboard infers ONLINE/STALE/OFFLINE from server timestamps instead of trusting a persisted flag.</p></div>
+    <div class="card tint"><h4>Server-side validation</h4><p class="small" style="margin-bottom:0">Range checks, timestamp windows and server-side reclassification reject malformed or stale payloads.</p></div>
+    <div class="card tint"><h4>Automatic reconnect</h4><p class="small" style="margin-bottom:0">The Firebase SDK reconnects; the ESP32 retries Wi-Fi every 10 s and drains the queue on recovery.</p></div>
+  </div>
+
+  <h3>9.3 Honest limitations</h3>
+  <table>
+    <thead><tr><th style="width:40mm">Limitation</th><th>Impact</th><th>What a production version needs</th></tr></thead>
+    <tbody>
+      <tr><td>Public read-only monitoring data</td><td>Anyone with the URL can read bag levels.</td><td>Staff authentication, role-based access, per-tenant rules.</td></tr>
+      <tr><td>One shared device token</td><td>Revoking one device affects all devices with that token.</td><td>Per-device credentials and a rotation/revocation service.</td></tr>
+      <tr><td>In-memory rate limiter</td><td>Per serverless instance; not a global quota.</td><td>Shared store (Redis/Upstash) or API gateway quota.</td></tr>
+      <tr><td>No user accounts or audit log</td><td>No record of who viewed or acknowledged an alert.</td><td>Identity, audit trail, alert escalation.</td></tr>
+      <tr><td>Weight model assumes density 1.005</td><td>Other fluids or bag shapes need a new fit.</td><td>Fluid-specific configuration or a second sensing method.</td></tr>
+      <tr><td>Mechanical sensitivity</td><td>Bench contact or side load biases the reading.</td><td>Enclosure, strain relief, calibrated hanger, load-cell temperature compensation.</td></tr>
+      <tr><td>Single live bag</td><td>Added bags are simulated.</td><td>Device registry and per-bag topic/credentials.</td></tr>
+      <tr><td>Serverless cold start</td><td>First request after idle can be slower.</td><td>Warm pool, provisioned concurrency, or a small always-on service.</td></tr>
+      <tr><td>Not a medical device</td><td>No clinical validation, alarm certification or regulatory approval.</td><td>Design controls, IEC 60601/62304-style process, clinical trials.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout viva"><b>Answer if asked “is it secure?”:</b> “For a course prototype, the important boundary is correct: the browser never holds Admin credentials or the raw device token, writes are server-only, and TLS is verified. It is not a clinical security model — there is no staff login, audit trail or per-device key — and I can name exactly what those would require.”</div>
+
+  <h3>9.4 Privacy</h3>
+  <p style="margin-bottom:0">The prototype stores no patient identifiers: only a bag ID (<code>IV-01</code>), a device ID and sensor readings. A real deployment handling patient-linked data would need a privacy review, access control, retention policy and encryption at rest, none of which this classroom prototype claims to provide.</p>
+</section>
+
+<!-- ===================== 10 ===================== -->
+<section class="newpage" id="s10">
+  <div class="sec-head">
+    <div class="sec-num">10</div>
+    <div><div class="sec-kicker">Operations</div><h2>Deployment &amp; configuration</h2></div>
+  </div>
+
+  <h3>10.1 Production topology</h3>
+  <table>
+    <thead><tr><th style="width:34mm">Piece</th><th>Setting</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><b>Host</b></td><td>Vercel project <code>dropsafe</code>, team <code>bar-4453</code></td><td>Static hosting + serverless functions on one domain.</td></tr>
+      <tr><td><b>Dashboard</b></td><td>Vite build from <code>dist/</code></td><td>Static React bundle served from the edge.</td></tr>
+      <tr><td><b>Functions</b></td><td>Node 22, region <code>sin1</code></td><td>Close to the <code>asia-southeast1</code> RTDB; one shared Express app.</td></tr>
+      <tr><td><b>Database</b></td><td>Firebase RTDB <code>asia-southeast1</code></td><td>Public read-only rules; Admin SDK writes from the gateway.</td></tr>
+      <tr><td><b>Deploys</b></td><td>GitHub <code>main</code> → Vercel production</td><td>A push builds and aliases production within seconds.</td></tr>
+      <tr><td><b>Fallback</b></td><td><code>npx vercel deploy --prod --yes</code></td><td>Manual deploy overrides production until the next push.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.2 Environment variables</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>Public (browser) — <code>VITE_*</code></h4>
+      <table style="margin:0">
+        <tbody>
+          <tr><td><code>VITE_FIREBASE_DATABASE_URL</code></td><td>RTDB endpoint</td></tr>
+          <tr><td><code>VITE_FIREBASE_BAG_ID</code></td><td><code>IV-01</code></td></tr>
+          <tr><td><code>VITE_FIREBASE_DEVICE_ID</code></td><td><code>dropsafe-01</code></td></tr>
+          <tr><td><code>VITE_FIREBASE_AUTO_CONNECT</code></td><td><code>true</code></td></tr>
+          <tr><td><code>VITE_FIREBASE_STALE_AFTER_SEC</code></td><td><code>30</code></td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin:2mm 0 0">These are public by design. No service account or device token belongs here.</p>
+    </div>
+    <div class="card">
+      <h4>Server-only secrets and config</h4>
+      <table style="margin:0">
+        <tbody>
+          <tr><td><code>FIREBASE_DATABASE_URL</code></td><td>RTDB URL</td></tr>
+          <tr><td><code>FIREBASE_SERVICE_ACCOUNT_JSON</code></td><td>Admin credential</td></tr>
+          <tr><td><code>DEVICE_TOKEN_SHA256</code></td><td>64-hex digest</td></tr>
+          <tr><td><code>DEVICE_ID</code>, <code>BAG_ID</code></td><td>identity</td></tr>
+          <tr><td><code>LOW_ML</code>, <code>CRITICAL_ML</code></td><td>100 / 25</td></tr>
+          <tr><td><code>EMPTY_BAG_TARE_G</code></td><td>95.6</td></tr>
+          <tr><td><code>REQUIRE_HTTPS</code></td><td><code>true</code></td></tr>
+        </tbody>
+      </table>
+      <p class="small" style="margin:2mm 0 0">Changing an environment variable requires a redeploy to take effect.</p>
+    </div>
+  </div>
+
+  <h3>10.3 Commands</h3>
+  <table>
+    <thead><tr><th style="width:48mm">Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>npm install</code></td><td>Install frontend, gateway and test dependencies.</td></tr>
+      <tr><td><code>npm run dev</code></td><td>Vite development server for the dashboard.</td></tr>
+      <tr><td><code>npm run server</code></td><td>Local Express gateway on port 8787 (optional; production uses Vercel).</td></tr>
+      <tr><td><code>npm test</code></td><td>Run the 139-test Vitest suite.</td></tr>
+      <tr><td><code>npm run build</code></td><td>Type-check and build the production bundle.</td></tr>
+      <tr><td><code>npm run device-token</code></td><td>Generate a device token and its SHA-256 digest.</td></tr>
+      <tr><td><code>npm run reset:data</code></td><td>Clear RTDB history and current bag snapshots; keep config and device.</td></tr>
+      <tr><td><code>npx vercel logs https://dropsafe-xi.vercel.app --json</code></td><td>Inspect function logs when a request fails.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>10.4 Pre-demo verification</h3>
+  <table>
+    <thead><tr><th style="width:58mm">Check</th><th>Command / action</th><th>Expected</th></tr></thead>
+    <tbody>
+      <tr><td>Gateway alive</td><td><code>curl https://dropsafe-xi.vercel.app/api/health</code></td><td><code>{"ok":true,"service":"dropsafe-gateway"}</code></td></tr>
+      <tr><td>Dashboard served</td><td>Open the production URL</td><td>HTTP 200, dashboard renders.</td></tr>
+      <tr><td>Write auth</td><td>POST <code>/api/telemetry</code> without a token</td><td>HTTP 401 <code>Unauthorized.</code></td></tr>
+      <tr><td>Region</td><td>Inspect <code>X-Vercel-Id</code></td><td><code>::sin1::</code></td></tr>
+      <tr><td>Device online</td><td>Live Monitoring → Device status</td><td>ONLINE, recent “last updated”.</td></tr>
+      <tr><td>Tests</td><td><code>npx vitest run</code></td><td>139 passed.</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-bottom:0">These checks were run on 18 November 2026: health 200, dashboard 200, both missing-token and bad-token POSTs 401, region <code>sin1</code>, and 139/139 tests passing.</p>
+</section>
+
+<!-- ===================== 11 ===================== -->
+<section class="newpage" id="s11">
+  <div class="sec-head">
+    <div class="sec-num">11</div>
+    <div><div class="sec-kicker">Evidence</div><h2>Testing &amp; results</h2></div>
+  </div>
+
+  <div class="grid4">
+    <div class="metric"><div class="v">11</div><div class="l">test files</div></div>
+    <div class="metric"><div class="v">139</div><div class="l">tests passing</div></div>
+    <div class="metric"><div class="v">~0.5 s</div><div class="l">suite runtime</div></div>
+    <div class="metric"><div class="v">0</div><div class="l">failures on 18 Nov 2026</div></div>
+  </div>
+
+  <h3>11.1 What the suite covers</h3>
+  <table>
+    <thead><tr><th style="width:56mm">Test file</th><th>Focus</th></tr></thead>
+    <tbody>
+      <tr><td><code>src/lib/calculations.test.ts</code></td><td>Volume from weight, percent clamping, flow rejection rules, time-to-empty.</td></tr>
+      <tr><td><code>src/lib/status.test.ts</code></td><td>Threshold boundaries, CRITICAL precedence, fault classification, severity.</td></tr>
+      <tr><td><code>src/state/monitor.test.ts</code></td><td>Reducer: ticks, readings, source switches, resets, manual reductions, acknowledgement, settings.</td></tr>
+      <tr><td><code>src/data/firebaseProvider.test.ts</code></td><td>Snapshot parsing, malformed data, history conversion.</td></tr>
+      <tr><td><code>server/telemetry.test.js</code></td><td>Schema validation, server-side recomputation, timestamp windows, fault handling.</td></tr>
+      <tr><td><code>server/auth.test.js</code></td><td>Token hashing, constant-time comparison, missing/malformed headers.</td></tr>
+      <tr><td><code>src/lib/storage.test.ts</code></td><td>LocalStorage validation, corrupted data, legacy key cleanup.</td></tr>
+      <tr><td><code>src/lib/settings.test.ts</code></td><td>Threshold and interval validation, critical &lt; low invariant.</td></tr>
+      <tr><td><code>src/lib/cloud.test.ts</code></td><td>WAITING/ONLINE/STALE/OFFLINE transitions and staleness window.</td></tr>
+      <tr><td><code>src/lib/format.test.ts</code></td><td>Duration, volume, flow and freshness formatting.</td></tr>
+      <tr><td><code>src/lib/routes.test.ts</code></td><td>Hash-route parsing and fallback.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>11.2 System verification performed</h3>
+  <table>
+    <thead><tr><th style="width:56mm">Check</th><th>Result</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Production health</td><td><span class="tag live">PASS</span> 200</td><td><code>{"ok":true,"service":"dropsafe-gateway"}</code></td></tr>
+      <tr><td>Production dashboard</td><td><span class="tag live">PASS</span> 200</td><td>Vite bundle served from <code>dropsafe-xi.vercel.app</code>.</td></tr>
+      <tr><td>Telemetry without token</td><td><span class="tag live">PASS</span> 401</td><td><code>{"ok":false,"error":"Unauthorized."}</code></td></tr>
+      <tr><td>Telemetry with bad token</td><td><span class="tag live">PASS</span> 401</td><td>Same response; no body processing.</td></tr>
+      <tr><td>Function region</td><td><span class="tag live">PASS</span> sin1</td><td><code>X-Vercel-Id: …::sin1::…</code></td></tr>
+      <tr><td>Automated suite</td><td><span class="tag live">PASS</span> 139/139</td><td>Vitest, 11 files, 18 Nov 2026.</td></tr>
+      <tr><td>Calibration endpoints</td><td><span class="tag live">PASS</span></td><td>Empty → 0 mL; mid → ~248 mL; full → ~492 mL.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>11.3 Calibration results</h3>
+  <table>
+    <thead><tr><th>State</th><th class="num">Measured display</th><th class="num">Reference</th><th class="num">Error</th><th>Interpretation</th></tr></thead>
+    <tbody>
+      <tr><td>Empty hanging assembly</td><td class="num">0 mL</td><td class="num">0 mL</td><td class="num">0</td><td>Negative raw volume is clamped to zero.</td></tr>
+      <tr><td>Mid-bag fill</td><td class="num">~248 mL</td><td class="num">250 mL</td><td class="num">−0.8%</td><td>Useful mid-scale accuracy.</td></tr>
+      <tr><td>Full 500 mL bag</td><td class="num">~492 mL</td><td class="num">500 mL</td><td class="num">−1.6%</td><td>About 98% of nominal at the endpoint.</td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">The full bag's gross reading is approximately 591 g with the fitted factor. The tare is a fitted offset, not the physical bag mass; refit factor and tare together if the rig changes.</p>
+
+  <h3>11.4 Performance envelope</h3>
+  <table>
+    <thead><tr><th style="width:58mm">Property</th><th>Value</th><th>Qualification</th></tr></thead>
+    <tbody>
+      <tr><td>Local detection latency</td><td>≤ 1 s after the sample</td><td>Sampling interval is 1 s; the alarm is evaluated every loop pass.</td></tr>
+      <tr><td>Remote update latency</td><td>Typically one publish interval + network/RTDB push</td><td>Publish is every 5 s; serverless cold start can add delay.</td></tr>
+      <tr><td>Buffer duration</td><td>~2 minutes</td><td>24 samples at 5 s spacing; overflow drops oldest.</td></tr>
+      <tr><td>Cloud history</td><td>500 points</td><td>Pruned every 20 accepted writes; per-instance counter.</td></tr>
+      <tr><td>Chart history</td><td>60 points</td><td>UI keeps a rolling window for rendering.</td></tr>
+      <tr><td>Flow window</td><td>6 valid points</td><td>Smoothes noise; rejects discontinuities and impossible rates.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn"><b>What is not tested:</b> long-duration soak testing, real HX711 temperature drift, end-to-end browser automation, and a formal penetration test. These are appropriate next steps, not claims of the current prototype.</div>
+</section>
+
+<!-- ===================== 12 ===================== -->
+<section class="newpage" id="s12">
+  <div class="sec-head">
+    <div class="sec-num">12</div>
+    <div><div class="sec-kicker">Delivery</div><h2>Presentation &amp; demo plan</h2></div>
+  </div>
+
+  <h3>12.1 Ten-minute run sheet</h3>
+  <table>
+    <thead><tr><th style="width:20mm">Time</th><th style="width:46mm">On screen</th><th>Say / show</th></tr></thead>
+    <tbody>
+      <tr><td>0:00–1:00</td><td>Title or the live dashboard</td><td>Hook: “An IV bag has no sensor. Staff check it by eye, between other tasks. DropSafe makes the bag report itself.”</td></tr>
+      <tr><td>1:00–2:30</td><td>Architecture diagram</td><td>Trace one reading: load cell → ESP32 → HTTPS gateway → Firebase → dashboard. Point out the local alarm branch.</td></tr>
+      <tr><td>2:30–4:00</td><td>Hardware / wiring</td><td>Explain the bridge, HX711, and why weight is independent of bag shape. Mention the free-hanging rule.</td></tr>
+      <tr><td>4:00–5:30</td><td>Calibration slide/table</td><td>Two-point fit, factor 187.9 and tare 95.6, measured 0 / ~248 / ~492 mL. Tell the calibration-bug story.</td></tr>
+      <tr><td>5:30–7:30</td><td>Live Monitoring</td><td>Demo: live or simulated bag, volume and flow, trigger LOW then CRITICAL, acknowledge, show history.</td></tr>
+      <tr><td>7:30–8:30</td><td>Security / reliability</td><td>Server-authoritative writes, read-only browser, token digest, TLS pin, offline queue and stale detection.</td></tr>
+      <tr><td>8:30–9:30</td><td>Results / limitations</td><td>139 tests, deployment checks, calibration error. State the clinical and security limits clearly.</td></tr>
+      <tr><td>9:30–10:00</td><td>Close</td><td>“Cheap sensing, a safe local alarm, and a trustworthy remote view — with a clear path to a real deployment.”</td></tr>
+    </tbody>
+  </table>
+
+  <h3>12.2 Five-minute live demo script</h3>
+  <ol>
+    <li><b>Open Overview.</b> Point out the live/demo tag and the summary counts. “One live channel, IV-01, 500 mL bag.”</li>
+    <li><b>Open Live Monitoring.</b> Show the gauge, remaining volume, weight, flow and time-to-empty. “Every number here comes from the weight.”</li>
+    <li><b>Trigger LOW</b> (hardware: let it drain to 100 mL; fallback: Simulate LOW). Show the amber state, banner and alert record.</li>
+    <li><b>Trigger CRITICAL</b> at 25 mL. Show the red state; enable sound if appropriate. “The device's buzzer does this without Wi-Fi.”</li>
+    <li><b>Acknowledge.</b> Show that the alert is marked acknowledged but the status stays CRITICAL. “Acknowledgement is not a fix.”</li>
+    <li><b>Show Alert History.</b> Filter by type; open the CSV export. “One row per state change, not per sample.”</li>
+    <li><b>Show resilience.</b> Disconnect Wi-Fi or stop the gateway. The local alarm continues; the dashboard moves to STALE/OFFLINE. Reconnect and show recovery.</li>
+    <li><b>Close on architecture.</b> “The browser never had the keys; the server decided the status.”</li>
+  </ol>
+
+  <div class="callout">
+    <b>If hardware fails:</b> switch to the simulator in one click. The same reducer, threshold logic and alert pipeline run; only the source changes. Say explicitly: “This is the built-in 120× simulator, so the demo still works without the rig.” Then show the live deployment if the network is available.
+  </div>
+
+  <h3>12.3 Pre-flight checklist</h3>
+  <ul class="checklist">
+    <li>Board flashed with the current <code>API_URL</code>, CA and token.</li>
+    <li>Calibration factor and tare match the deployed gateway and dashboard.</li>
+    <li>Bag hangs freely; tubing slack; no bench contact.</li>
+    <li>Wi-Fi credentials valid; phone hotspot ready as backup.</li>
+    <li><code>/api/health</code> returns <code>ok:true</code>.</li>
+    <li>Live page shows ONLINE, not STALE.</li>
+    <li>Browser at 100% zoom; dashboard loaded before the talk.</li>
+    <li>Sound enabled (one click) and volume audible.</li>
+    <li>Simulator fallback tested in a second tab.</li>
+    <li>Screenshots of the working dashboard saved offline.</li>
+    <li>Known-volume container and water/towel for a live fill test.</li>
+    <li>Serial monitor at 115200 baud for <code>status</code> / <code>raw</code>.</li>
+    <li>Charged laptop; charger; spare USB cable.</li>
+    <li>Do not display <code>.env</code>, <code>secrets.h</code> or the service account.</li>
+  </ul>
+
+  <h3>12.4 Likely viva questions</h3>
+  <div class="qa"><div class="q">1. Why measure weight instead of using an optical or ultrasonic sensor?</div><div class="a">Weight is independent of bag shape, opacity and foil packaging, and it directly measures the mass consumed. It also works with the bag hanging, which is how IV therapy is already delivered. The trade-off is mechanical: the bag must hang freely and the rig must be tared and calibrated.</div></div>
+  <div class="qa"><div class="q">2. How do you convert grams to millilitres?</div><div class="a">Remaining volume = (gross weight − fitted tare) ÷ fluid density. For 0.9% saline, density is about <strong>1.005 g/mL</strong>. The tare is a zero offset fitted with the calibration factor, not the physical mass of the bag.</div></div>
+  <div class="qa"><div class="q">3. Why the HX711?</div><div class="a">A strain-gauge bridge produces a millivolt-level differential signal. The HX711 integrates a low-noise amplifier and a 24-bit ADC with a simple two-wire interface, so it can resolve the small changes from a hanging bag at low cost.</div></div>
+  <div class="qa"><div class="q">4. Why an ESP32 rather than a simpler microcontroller?</div><div class="a">It combines Wi-Fi, dual cores, enough RAM for TLS and a queue, and FreeRTOS tasks. That lets sampling and the local alarm run independently of the network task. A smaller MCU would need a separate Wi-Fi module and more glue logic.</div></div>
+  <div class="qa"><div class="q">5. Why not let the ESP32 write directly to Firebase?</div><div class="a">The service account would have to live on the device, and the device would be trusted to decide its own status. The gateway keeps Admin credentials server-side, stores only a token digest, rate-limits, validates and <strong>recomputes</strong> volume and status. It is a deliberate trust boundary.</div></div>
+  <div class="qa"><div class="q">6. What happens if Wi-Fi or the gateway goes down?</div><div class="a">Sampling and the local buzzer/LED continue. Samples enter a 24-slot ring buffer, about two minutes at a 5 s publish interval. On reconnect the queue drains oldest-first at one sample per second; the history key is the timestamp, so retries do not duplicate.</div></div>
+  <div class="qa"><div class="q">7. How do you stop duplicate history entries?</div><div class="a">The history key is the device's <code>recordedAt</code> timestamp. A retried sample overwrites the same key. The current snapshot only moves forward if the incoming timestamp is at least as new, so an old queued sample cannot roll the display back.</div></div>
+  <div class="qa"><div class="q">8. How is the device authenticated?</div><div class="a">A 32-byte random token is flashed only into <code>secrets.h</code>. The gateway stores its SHA-256 digest and compares in constant time with <code>timingSafeEqual</code>. A missing or wrong token gets 401 before validation or database work.</div></div>
+  <div class="qa"><div class="q">9. Is the dashboard secure?</div><div class="a">For this prototype, the key properties hold: the browser has no Admin credentials, no raw device token, and no write permission; TLS is verified with a pinned root. It is not a clinical security model — there is no staff login, audit trail or per-device key — and I can name those gaps.</div></div>
+  <div class="qa"><div class="q">10. How accurate is it?</div><div class="a">The fitted rig reads about <strong>492 mL for a 500 mL bag</strong> and <strong>~248 mL at mid-scale</strong> — roughly 1.6% endpoint error and under 1% mid-scale. That is adequate for level awareness, not for billing or clinical volume measurement. A production device would need a tighter mechanical design and temperature compensation.</div></div>
+  <div class="qa"><div class="q">11. Why are the thresholds 100 mL and 25 mL?</div><div class="a">They are 20% and 5% of a 500 mL bag — a practical classroom choice. They are configurable in Settings and on the gateway. They are not clinical recommendations and would be set by policy in a real deployment.</div></div>
+  <div class="qa"><div class="q">12. What was the hardest problem?</div><div class="a">Calibration. An early version treated the tare as the physical bag mass, which mis-scaled everything above 200 mL. The fix was a two-point fit of factor and offset from the empty and full states, verified at mid-scale, and keeping all four copies of the constants aligned.</div></div>
+  <div class="qa"><div class="q">13. How do you test without the hardware?</div><div class="a">The domain logic is pure functions and a pure reducer. The simulator feeds the same <code>SensorReading</code> shape as the real transports, so threshold, alert, flow and state tests run without a board. The suite is 139 tests across 11 files.</div></div>
+  <div class="qa"><div class="q">14. What would it take to deploy this in a hospital?</div><div class="a">Per-device credentials and rotation, staff authentication and roles, an audit trail, alert escalation, a device registry, battery/enclosure design, clinical validation and a regulatory process. The current architecture is a prototype, not a certified medical device.</div></div>
+  <div class="qa"><div class="q">15. What is the next engineering step?</div><div class="a">Multi-bag support with a device registry, per-device keys, battery and deep-sleep operation, OTA firmware updates, and a mechanical enclosure that guarantees free hanging and strain relief. On the software side, a shared rate-limit store and an audit log.</div></div>
+
+  <div class="callout viva" style="margin-top:4mm"><b>Closing line:</b> “DropSafe is a small system with a clear trust boundary: cheap sensing at the edge, a safe local alarm, and a remote view that is useful precisely because the server — not the device or the browser — decides what is true.”</div>
+</section>
+
+<!-- ===================== APPENDIX A ===================== -->
+<section class="newpage" id="appA">
+  <div class="sec-head">
+    <div class="sec-num">A</div>
+    <div><div class="sec-kicker">Reference</div><h2>Repository map &amp; API</h2></div>
+  </div>
+
+  <h3>A.1 Where each responsibility lives</h3>
+  <table>
+    <thead><tr><th style="width:64mm">Path</th><th>Responsibility</th></tr></thead>
+    <tbody>
+      <tr><td><code>esp32_dropsafe/esp32_dropsafe.ino</code></td><td>Sampling loop, conversion, alarm, ring buffer, network task, TLS, serial commands.</td></tr>
+      <tr><td><code>esp32_dropsafe/config.h</code></td><td>Pins, calibration factor, tare, density, thresholds, timings, queue size, TLS switch.</td></tr>
+      <tr><td><code>esp32_dropsafe/secrets.h</code></td><td>Wi-Fi credentials, API URL, device token, pinned root CA. <b>Git-ignored.</b></td></tr>
+      <tr><td><code>server/index.js</code></td><td>Express app, middleware, routes, error handling, shared Vercel handler.</td></tr>
+      <tr><td><code>server/auth.js</code></td><td>Token hashing and constant-time verification.</td></tr>
+      <tr><td><code>server/telemetry.js</code></td><td>Pure validation and server-side volume/status recomputation.</td></tr>
+      <tr><td><code>server/firebase.js</code></td><td>Admin initialisation, atomic writes, history pruning, config publication.</td></tr>
+      <tr><td><code>server/config.js</code></td><td>Environment parsing and invariant checks.</td></tr>
+      <tr><td><code>api/telemetry.js</code>, <code>api/health.js</code></td><td>Vercel entry points that re-export the shared Express handler.</td></tr>
+      <tr><td><code>src/lib/calculations.ts</code></td><td>Volume, percent, flow, time-to-empty, clamps.</td></tr>
+      <tr><td><code>src/lib/status.ts</code></td><td>Threshold classification, severity, UI status metadata.</td></tr>
+      <tr><td><code>src/lib/processing.ts</code></td><td>Reading → bag update; edge-triggered alerts; history window.</td></tr>
+      <tr><td><code>src/state/monitor.ts</code></td><td>Pure reducer for monitoring, demo, alerts and settings.</td></tr>
+      <tr><td><code>src/state/useMonitor.ts</code></td><td>Transports, timers, persistence, alarm sound, cloud subscription.</td></tr>
+      <tr><td><code>src/data/firebaseProvider.ts</code></td><td>Read-only RTDB subscriptions, snapshot parsing, history load.</td></tr>
+      <tr><td><code>src/pages/*</code>, <code>src/components/*</code></td><td>Overview, Live Monitoring, Alert History, Settings and the UI components.</td></tr>
+      <tr><td><code>firebase/database.rules.json</code></td><td>Public read, no write, scoped to <code>monitoring</code>.</td></tr>
+      <tr><td><code>vercel.json</code></td><td>Vite build, <code>dist</code> output, <code>sin1</code> region.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>A.2 API examples</h3>
+  <p>Health check:</p>
+  <pre>curl https://dropsafe-xi.vercel.app/api/health
+<span class="g">{"ok":true,"service":"dropsafe-gateway"}</span></pre>
+  <p>Telemetry (token replaced with a placeholder — never commit a real token):</p>
+  <pre>curl -X POST https://dropsafe-xi.vercel.app/api/telemetry \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: &lt;DEVICE_TOKEN&gt;" \
+  -d '{
+    "deviceId": "dropsafe-01",
+    "bagId": "IV-01",
+    "firmware": "1.0.0",
+    "sensorOk": true,
+    "weightG": 517.6,
+    "volumeMl": 420,
+    "percent": 84,
+    "status": "NORMAL",
+    "alarm": false,
+    "rssi": -45,
+    "uptimeSec": 3600,
+    "publishIntervalSec": 5,
+    "recordedAt": 1763500000000
+  }'</pre>
+  <p class="small" style="margin-bottom:0">The gateway ignores the supplied <code>volumeMl</code>, <code>percent</code> and <code>status</code>: it recomputes them from <code>weightG</code>. A successful response is <code>202</code> with <code>recordedAt</code>, <code>status</code> and <code>currentUpdated</code>.</p>
+</section>
+
+<!-- ===================== APPENDIX B ===================== -->
+<section class="newpage" id="appB">
+  <div class="sec-head">
+    <div class="sec-num">B</div>
+    <div><div class="sec-kicker">Reference</div><h2>Configuration &amp; glossary</h2></div>
+  </div>
+
+  <h3>B.1 Firmware constants</h3>
+  <table>
+    <thead><tr><th style="width:62mm">Constant</th><th class="num" style="width:24mm">Value</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>DEVICE_ID</code> / <code>BAG_ID</code></td><td class="num">dropsafe-01 / IV-01</td><td>Must match the gateway environment.</td></tr>
+      <tr><td><code>FIRMWARE_VERSION</code></td><td class="num">1.0.0</td><td>Reported in the heartbeat.</td></tr>
+      <tr><td><code>HX711_DT_PIN</code> / <code>SCK_PIN</code></td><td class="num">18 / 19</td><td>HX711 data and clock.</td></tr>
+      <tr><td><code>BUZZER_PIN</code> / <code>STATUS_LED_PIN</code></td><td class="num">4 / 2</td><td>Alarm outputs.</td></tr>
+      <tr><td><code>CALIBRATION_FACTOR</code></td><td class="num">187.9</td><td>Counts per gram, fitted to the rig.</td></tr>
+      <tr><td><code>EMPTY_BAG_TARE_G</code></td><td class="num">95.6 g</td><td>Fitted zero offset; not the bag mass.</td></tr>
+      <tr><td><code>FLUID_DENSITY_G_PER_ML</code></td><td class="num">1.005</td><td>0.9% saline.</td></tr>
+      <tr><td><code>INITIAL_VOLUME_ML</code></td><td class="num">500 mL</td><td>Nominal bag.</td></tr>
+      <tr><td><code>MAX_LOAD_G</code></td><td class="num">5000 g</td><td>5 kg cell limit.</td></tr>
+      <tr><td><code>LOW_ML</code> / <code>CRITICAL_ML</code></td><td class="num">100 / 25 mL</td><td>Classroom thresholds.</td></tr>
+      <tr><td><code>SAMPLE_INTERVAL_MS</code></td><td class="num">1000</td><td>1 Hz local sample.</td></tr>
+      <tr><td><code>PUBLISH_INTERVAL_MS</code></td><td class="num">5000</td><td>Cloud publish.</td></tr>
+      <tr><td><code>OFFLINE_QUEUE_SIZE</code></td><td class="num">24</td><td>~2 min of samples.</td></tr>
+      <tr><td><code>TLS_INSECURE</code></td><td class="num">0</td><td>Never enable in production.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>B.2 Glossary</h3>
+  <table>
+    <thead><tr><th style="width:40mm">Term</th><th>Meaning in this project</th></tr></thead>
+    <tbody>
+      <tr><td><b>Load cell</b></td><td>A transducer that converts force/weight into a small electrical signal using strain gauges.</td></tr>
+      <tr><td><b>HX711</b></td><td>A 24-bit ADC with a built-in amplifier, designed for weigh-scale bridge sensors.</td></tr>
+      <tr><td><b>Tare</b></td><td>The zero offset. Here it is a fitted constant paired with the calibration factor, not the physical bag mass.</td></tr>
+      <tr><td><b>Calibration factor</b></td><td>The counts-per-gram scale factor used by the HX711 library to convert raw counts to grams.</td></tr>
+      <tr><td><b>RTDB</b></td><td>Firebase Realtime Database: a JSON tree with live client subscriptions.</td></tr>
+      <tr><td><b>Serverless function</b></td><td>A stateless HTTP handler run on demand; here, the Vercel gateway.</td></tr>
+      <tr><td><b>TLS pinning</b></td><td>Trusting a specific root CA instead of the whole system trust store.</td></tr>
+      <tr><td><b>TTE</b></td><td>Time to empty: remaining volume divided by the estimated flow rate.</td></tr>
+      <tr><td><b>RSSI</b></td><td>Received signal strength indicator, reported by the ESP32 in dBm.</td></tr>
+      <tr><td><b>Web Serial</b></td><td>A browser API that reads a serial port after a user gesture; used for bench debugging.</td></tr>
+      <tr><td><b>Discontinuity</b></td><td>A deliberate level change (reset, manual reduction, source switch) that resets flow estimation.</td></tr>
+      <tr><td><b>Edge-triggered alert</b></td><td>An alert created only when the status changes, not on every sample.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>B.3 One-page formula sheet</h3>
+  <div class="formula">
+    <b>Volume</b> = (gross weight − tare) ÷ density<br>
+    <b>Percent</b> = clamp(volume ÷ initial volume × 100, 0, 100)<br>
+    <b>Flow</b> = (earlier volume − later volume) ÷ elapsed hours<br>
+    <b>Time to empty</b> = volume ÷ flow<br>
+    <b>Calibration factor</b> = (raw_full − raw_empty) ÷ (known_full_mL × density)<br>
+    <b>Tare</b> = raw_empty ÷ calibration factor<br>
+    <b>Staleness window</b> = max(30 s, 3 × publish interval)<br>
+    <b>Buffer duration</b> = queue size × publish interval = 24 × 5 s ≈ 2 min
+  </div>
+
+  <div class="endmark">
+    <span>DropSafe · Technical Dossier · Prototype v1.0</span>
+    <span>dropsafe-xi.vercel.app</span>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

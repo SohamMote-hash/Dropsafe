@@ -116,10 +116,9 @@ void updateAlarm(LocalStatus status) {
   unsigned long period = 0;
   unsigned long onMs = 0;
   switch (status) {
-    case LocalStatus::LOW_LEVEL: period = 2000; onMs = 150; break;
     case LocalStatus::CRITICAL: period = 500; onMs = 250; break;
     case LocalStatus::FAULT: period = 1000; onMs = 100; break;
-    default: return;
+    default: return; // LOW_LEVEL: LED and buzzer stay off
   }
 
   const bool shouldBeOn = (millis() % period) < onMs;

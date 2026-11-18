@@ -50,4 +50,4 @@ constexpr bool BUZZER_ACTIVE = true;
 
 // NEVER enable this in production. It disables HTTPS certificate verification
 // and is only for local development with a self-signed gateway.
-#define TLS_INSECURE 1
+#define TLS_INSECURE 0
