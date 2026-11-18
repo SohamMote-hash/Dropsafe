@@ -96,7 +96,17 @@ export function monitorReducer(state: MonitorState, action: MonitorAction): Moni
       return next;
     }
     case 'SET_SOURCE': {
-      if (action.source === 'SIMULATED') return { ...state, source: 'SIMULATED' };
+      if (action.source === 'SIMULATED') {
+        if (state.source === 'SIMULATED') return state;
+        // Live history uses another clock; drop it so the demo charts restart cleanly.
+        return {
+          ...state,
+          source: 'SIMULATED',
+          bags: state.bags.map((b) => (b.id === LIVE_BAG_CONFIG.id
+            ? { ...b, history: [], flowMlH: null }
+            : b)),
+        };
+      }
       const liveBagId = action.liveBagId ?? LIVE_BAG_CONFIG.id;
       return {
         ...state,

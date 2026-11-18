@@ -74,6 +74,33 @@ describe('SET_SOURCE', () => {
     expect(state.bags[0].lastReadingAt).toBe(recordedAt);
     expect(state.bags[0].history.some((point) => point.t === NOW)).toBe(false);
   });
+
+  it('drops the live history when falling back to the demo', () => {
+    let state = createInitialState(DEFAULT_SETTINGS, [], NOW);
+    state = monitorReducer(state, { type: 'SET_SOURCE', source: 'FIREBASE', liveBagId: 'IV-01' });
+    state = monitorReducer(state, {
+      type: 'SENSOR_READING',
+      reading: { bagId: 'IV-01', timestamp: NOW, simSeconds: NOW / 1000, weightG: 530.63 },
+    });
+    expect(state.bags[0].history).toHaveLength(1);
+
+    state = monitorReducer(state, { type: 'SET_SOURCE', source: 'SIMULATED' });
+
+    expect(state.source).toBe('SIMULATED');
+    expect(state.bags[0].history).toHaveLength(0);
+    expect(state.bags[0].flowMlH).toBeNull();
+  });
+
+  it('resumes the demo clock after a fallback', () => {
+    let state = createInitialState(DEFAULT_SETTINGS, [], NOW);
+    state = monitorReducer(state, { type: 'SET_SOURCE', source: 'FIREBASE', liveBagId: 'IV-01' });
+    state = monitorReducer(state, { type: 'SET_SOURCE', source: 'SIMULATED' });
+    const before = state.bags[0].volumeMl;
+
+    state = monitorReducer(state, { type: 'TICK', now: NOW + DEFAULT_SETTINGS.intervalSec * 1000 });
+
+    expect(state.bags[0].volumeMl).toBeLessThan(before);
+  });
 });
 
 describe('ADD_BAG', () => {

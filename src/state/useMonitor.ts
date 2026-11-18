@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import type { Alarm, AlertType, CloudStatus, SensorReading, Settings } from '../types';
+import type { Alarm, AlertType, CloudStatus, MonitorSource, SensorReading, Settings } from '../types';
 import { createInitialState, monitorReducer, MANUAL_REDUCE_ML } from './monitor';
 import { loadAlerts, loadBagConfigs, loadSettings, saveAlerts, saveBagConfigs, saveSettings } from '../lib/storage';
 import { deriveAlarms, MAX_HISTORY_POINTS } from '../lib/processing';
 import { SEVERITY } from '../lib/status';
 import { ALARM_PERIOD_MS, playAlarm } from '../lib/sound';
+import { deviceLinkStatus, isTelemetryFresh } from '../lib/cloud';
 import {
-  FIREBASE_AUTO_CONNECT, FIREBASE_BAG_ID, FIREBASE_DEVICE_ID,
+  CLOUD_STALE_AFTER_SEC, FIREBASE_AUTO_CONNECT, FIREBASE_BAG_ID, FIREBASE_DEVICE_ID,
   firebaseConfigured, getFirebaseDatabase,
 } from '../lib/firebase';
 import {
@@ -55,6 +56,11 @@ export function useMonitor() {
   const transportRef = useRef<Transport>('SIMULATED');
   const cloudStopRef = useRef<(() => void) | null>(null);
   const cloudGenerationRef = useRef(0);
+  // Mirrors for Firebase callbacks, which must read the latest values without re-subscribing.
+  const sourceRef = useRef<MonitorSource>(state.source);
+  const cloudRef = useRef(cloud);
+  useEffect(() => { sourceRef.current = state.source; }, [state.source]);
+  useEffect(() => { cloudRef.current = cloud; }, [cloud]);
 
   // Persist settings and alert history.
   useEffect(() => saveSettings(state.settings), [state.settings]);
@@ -68,6 +74,18 @@ export function useMonitor() {
     const id = window.setInterval(() => dispatch({ type: 'TICK', now: Date.now() }), intervalSec * 1000);
     return () => window.clearInterval(id);
   }, [state.running, autoUpdates, intervalSec, state.source]);
+
+  // RTDB keeps the last record after the ESP32 is powered off. Once the heartbeat goes
+  // stale, fall back to the demo so the dashboard never freezes on old values.
+  useEffect(() => {
+    if (state.source !== 'FIREBASE') return;
+    const id = window.setInterval(() => {
+      if (deviceLinkStatus('FIREBASE', cloudRef.current, Date.now(), CLOUD_STALE_AFTER_SEC) !== 'STALE') return;
+      sourceRef.current = 'SIMULATED';
+      dispatch({ type: 'SET_SOURCE', source: 'SIMULATED' });
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [state.source]);
 
   const alarms = useMemo(() => deriveAlarms(state.bags), [state.bags]);
   useAlarmSound(alarms, state.settings.soundEnabled);
@@ -189,11 +207,32 @@ export function useMonitor() {
 
       try {
         const db = getFirebaseDatabase();
-        let switched = false;
-        const switchToLive = () => {
-          if (!isActive() || switched) return;
-          switched = true;
+
+        // Cloud history is only meaningful while live; hydrating it into the demo would
+        // mix transports and move the "last reading" time into the past.
+        const hydrateHistory = () => {
+          void loadHistory(db, FIREBASE_BAG_ID, MAX_HISTORY_POINTS)
+            .then((points) => {
+              if (!isActive() || sourceRef.current !== 'FIREBASE' || points.length === 0) return;
+              dispatch({
+                type: 'HYDRATE_HISTORY',
+                bagId: FIREBASE_BAG_ID,
+                points: points.map(toDataPoint),
+              });
+            })
+            .catch((error) => {
+              if (isActive()) {
+                setCloud((prev) => ({ ...prev, error: `History: ${errorMessage(error)}` }));
+              }
+            });
+        };
+
+        /** Enters live mode from a fresh reading; re-armed after a demo fallback. */
+        const enterLive = () => {
+          if (!isActive() || sourceRef.current === 'FIREBASE') return;
+          sourceRef.current = 'FIREBASE';
           dispatch({ type: 'SET_SOURCE', source: 'FIREBASE', liveBagId: FIREBASE_BAG_ID });
+          hydrateHistory();
         };
 
         unsubscribers.push(subscribeToConnection(db, (connected) => {
@@ -219,8 +258,13 @@ export function useMonitor() {
 
         unsubscribers.push(subscribeToBag(db, FIREBASE_BAG_ID, (bag) => {
           if (!isActive()) return;
+
+          // A snapshot left over from the last session must not pull the UI out of demo mode.
+          if (!isTelemetryFresh(bag.updatedAt ?? bag.recordedAt, Date.now(),
+              cloudRef.current.publishIntervalSec, CLOUD_STALE_AFTER_SEC)) return;
+
+          enterLive();
           const timestamp = bag.recordedAt ?? bag.updatedAt ?? Date.now();
-          switchToLive();
           const reading: SensorReading = {
             bagId: FIREBASE_BAG_ID,
             timestamp,
@@ -237,21 +281,6 @@ export function useMonitor() {
         }, (error) => {
           if (isActive()) setCloud((prev) => ({ ...prev, error: errorMessage(error) }));
         }));
-
-        void loadHistory(db, FIREBASE_BAG_ID, MAX_HISTORY_POINTS)
-          .then((points) => {
-            if (!isActive() || points.length === 0) return;
-            dispatch({
-              type: 'HYDRATE_HISTORY',
-              bagId: FIREBASE_BAG_ID,
-              points: points.map(toDataPoint),
-            });
-          })
-          .catch((error) => {
-            if (isActive()) {
-              setCloud((prev) => ({ ...prev, error: `History: ${errorMessage(error)}` }));
-            }
-          });
       } catch (error) {
         if (isActive()) {
           setCloud((prev) => ({

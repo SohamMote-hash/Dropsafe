@@ -62,6 +62,8 @@ function Shell() {
       toast.success('ESP32 connected. Receiving live USB readings.');
     } else if (previousSource.current === 'HARDWARE' && state.source !== 'HARDWARE') {
       toast.info('ESP32 disconnected. Simulation mode resumed.');
+    } else if (previousSource.current === 'FIREBASE' && state.source === 'SIMULATED') {
+      toast.info('ESP32 offline — switched to simulated demo data.');
     }
     previousSource.current = state.source;
   }, [state.source, toast]);
