@@ -34,12 +34,10 @@ constexpr float CRITICAL_ML = 25.0f;
 
 // ── Timing ───────────────────────────────────────────────────────────────────
 constexpr uint32_t SAMPLE_INTERVAL_MS = 1000;
-// Publish close to real time. Keep this above the gateway's MIN_WRITE_INTERVAL_MS
-// (1000 ms) with some margin, otherwise jitter causes HTTP 429 and a 5 s back-off.
-constexpr uint32_t PUBLISH_INTERVAL_MS = 1500;
-// Minimum spacing between POSTs, including when the network task catches up.
-// Must stay above the gateway's MIN_WRITE_INTERVAL_MS (1000 ms) or the second
-// request in a burst is rejected with HTTP 429.
+// Publish every 5 s. This is the cadence the rig was validated with; faster
+// publishing added TLS/Wi-Fi load and was not needed for accurate readings.
+constexpr uint32_t PUBLISH_INTERVAL_MS = 5000;
+// Floor between POSTs so a backlog can never burst past the gateway's limit.
 constexpr uint32_t SEND_GAP_MS = 1200;
 // How often the network task polls an empty queue or waits for its turn.
 constexpr uint32_t QUEUE_POLL_MS = 100;
