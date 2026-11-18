@@ -34,11 +34,13 @@ constexpr float CRITICAL_ML = 25.0f;
 
 // ── Timing ───────────────────────────────────────────────────────────────────
 constexpr uint32_t SAMPLE_INTERVAL_MS = 1000;
-constexpr uint32_t PUBLISH_INTERVAL_MS = 5000;
+// Publish close to real time. Keep this above the gateway's MIN_WRITE_INTERVAL_MS
+// (1000 ms) with some margin, otherwise jitter causes HTTP 429 and a 5 s back-off.
+constexpr uint32_t PUBLISH_INTERVAL_MS = 1500;
 constexpr uint32_t HTTP_TIMEOUT_MS = 8000;
 constexpr uint32_t WIFI_RETRY_MS = 10000;
 constexpr uint32_t NTP_RETRY_MS = 60000;
-constexpr uint32_t FLUSH_INTERVAL_MS = 1000;
+constexpr uint32_t FLUSH_INTERVAL_MS = 100;
 
 // Readings kept in RAM while offline. Oldest are dropped when the queue is full.
 constexpr size_t OFFLINE_QUEUE_SIZE = 24;

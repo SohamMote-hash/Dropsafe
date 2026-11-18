@@ -239,7 +239,7 @@ String buildPayload(const Sample& sample) {
   payload += ",\"uptimeSec\":";
   payload += String(sample.uptimeSec);
   payload += ",\"publishIntervalSec\":";
-  payload += String(PUBLISH_INTERVAL_MS / 1000);
+  payload += String((PUBLISH_INTERVAL_MS + 999) / 1000);
   payload += ",\"recordedAt\":";
   payload += timestamp;
   payload += "}";
@@ -271,6 +271,8 @@ bool sendSample(const Sample& sample) {
     Serial.println("HTTP begin failed (URL?).");
     return false;
   }
+  // Keep the TLS connection open where the gateway allows it: skips a handshake per publish.
+  http.setReuse(true);
   http.setConnectTimeout(HTTP_TIMEOUT_MS);
   http.setTimeout(HTTP_TIMEOUT_MS);
   http.addHeader("Content-Type", "application/json");
@@ -304,7 +306,7 @@ void networkTask(void*) {
 
     Sample sample;
     if (!peekQueue(sample)) {
-      vTaskDelay(pdMS_TO_TICKS(200));
+      vTaskDelay(pdMS_TO_TICKS(100));
       continue;
     }
 
