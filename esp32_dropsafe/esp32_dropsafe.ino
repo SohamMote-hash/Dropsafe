@@ -189,23 +189,28 @@ void enqueue(Sample sample) {
   xSemaphoreGive(queueMutex);
 }
 
-bool peekQueue(Sample& out) {
+/** Reads the newest sample without removing it. */
+bool peekNewest(Sample& out) {
   if (!queueMutex) return false;
   if (xSemaphoreTake(queueMutex, portMAX_DELAY) != pdTRUE) return false;
 
   const bool available = queueCount > 0;
-  if (available) out = queue[queueHead];
+  if (available) out = queue[(queueHead + queueCount - 1) % OFFLINE_QUEUE_SIZE];
 
   xSemaphoreGive(queueMutex);
   return available;
 }
 
-/** Removes the head only if it is still the sample that was just sent. */
-void popIfHead(uint32_t seq) {
+/** Drops the sent sample plus anything older, so a reconnect never replays a backlog. */
+void popThrough(uint32_t seq) {
   if (!queueMutex) return;
   if (xSemaphoreTake(queueMutex, portMAX_DELAY) != pdTRUE) return;
 
-  if (queueCount > 0 && queue[queueHead].seq == seq) {
+  while (queueCount > 0 && queue[queueHead].seq != seq) {
+    queueHead = (queueHead + 1) % OFFLINE_QUEUE_SIZE;
+    queueCount--;
+  }
+  if (queueCount > 0) {
     queueHead = (queueHead + 1) % OFFLINE_QUEUE_SIZE;
     queueCount--;
   }
@@ -263,13 +268,19 @@ bool ensureTls() {
   return true;
 }
 
-bool sendSample(const Sample& sample) {
-  if (WiFi.status() != WL_CONNECTED) return false;
-  if (!ensureTls()) return false;
+struct SendOutcome {
+  int code;                    // HTTP status, or 0 when nothing was sent
+  unsigned long retryAfterMs;  // gateway hint from HTTP 429
+};
+
+SendOutcome sendSample(const Sample& sample) {
+  SendOutcome outcome = {0, 0};
+  if (WiFi.status() != WL_CONNECTED) return outcome;
+  if (!ensureTls()) return outcome;
 
   if (!http.begin(secureClient, API_URL)) {
     Serial.println("HTTP begin failed (URL?).");
-    return false;
+    return outcome;
   }
   // Keep the TLS connection open where the gateway allows it: skips a handshake per publish.
   http.setReuse(true);
@@ -281,16 +292,21 @@ bool sendSample(const Sample& sample) {
   const String payload = buildPayload(sample);
   const int code = http.POST(payload);
   const String response = http.getString();
+  outcome.code = code;
+  if (code == 429) {
+    const long seconds = http.header("Retry-After").toInt();
+    outcome.retryAfterMs = seconds > 0 ? static_cast<unsigned long>(seconds) * 1000UL : 2000UL;
+  }
   http.end();
 
   if (code >= 200 && code < 300) {
     Serial.printf("Published %s %.1f mL (HTTP %d)\n",
       statusName(sample.status), sample.volumeMl, code);
-    return true;
+    return outcome;
   }
 
   Serial.printf("Publish failed (HTTP %d): %s\n", code, response.c_str());
-  return false;
+  return outcome;
 }
 
 /**
@@ -298,6 +314,8 @@ bool sendSample(const Sample& sample) {
  * delay sampling or the local buzzer/LED alarm.
  */
 void networkTask(void*) {
+  unsigned long lastSendAt = millis() - SEND_GAP_MS;
+
   for (;;) {
     if (WiFi.status() != WL_CONNECTED) {
       vTaskDelay(pdMS_TO_TICKS(500));
@@ -305,14 +323,25 @@ void networkTask(void*) {
     }
 
     Sample sample;
-    if (!peekQueue(sample)) {
-      vTaskDelay(pdMS_TO_TICKS(100));
+    if (!peekNewest(sample)) {
+      vTaskDelay(pdMS_TO_TICKS(QUEUE_POLL_MS));
       continue;
     }
 
-    if (sendSample(sample)) {
-      popIfHead(sample.seq);
-      vTaskDelay(pdMS_TO_TICKS(FLUSH_INTERVAL_MS));
+    // Respect the gateway's rate limit even when catching up after an outage.
+    const unsigned long sinceLast = millis() - lastSendAt;
+    if (sinceLast < SEND_GAP_MS) {
+      vTaskDelay(pdMS_TO_TICKS(SEND_GAP_MS - sinceLast));
+      continue;
+    }
+
+    lastSendAt = millis();
+    const SendOutcome outcome = sendSample(sample);
+
+    if (outcome.code >= 200 && outcome.code < 300) {
+      popThrough(sample.seq);
+    } else if (outcome.code == 429) {
+      vTaskDelay(pdMS_TO_TICKS(outcome.retryAfterMs));
     } else {
       vTaskDelay(pdMS_TO_TICKS(5000)); // gateway unreachable: back off, keep sampling
     }

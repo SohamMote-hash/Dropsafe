@@ -37,12 +37,18 @@ constexpr uint32_t SAMPLE_INTERVAL_MS = 1000;
 // Publish close to real time. Keep this above the gateway's MIN_WRITE_INTERVAL_MS
 // (1000 ms) with some margin, otherwise jitter causes HTTP 429 and a 5 s back-off.
 constexpr uint32_t PUBLISH_INTERVAL_MS = 1500;
+// Minimum spacing between POSTs, including when the network task catches up.
+// Must stay above the gateway's MIN_WRITE_INTERVAL_MS (1000 ms) or the second
+// request in a burst is rejected with HTTP 429.
+constexpr uint32_t SEND_GAP_MS = 1200;
+// How often the network task polls an empty queue or waits for its turn.
+constexpr uint32_t QUEUE_POLL_MS = 100;
 constexpr uint32_t HTTP_TIMEOUT_MS = 8000;
 constexpr uint32_t WIFI_RETRY_MS = 10000;
 constexpr uint32_t NTP_RETRY_MS = 60000;
-constexpr uint32_t FLUSH_INTERVAL_MS = 100;
 
-// Readings kept in RAM while offline. Oldest are dropped when the queue is full.
+// Readings kept in RAM while offline. Only the newest is uploaded on reconnect,
+// so the dashboard resumes at the current level instead of replaying a backlog.
 constexpr size_t OFFLINE_QUEUE_SIZE = 24;
 
 // ── Local alarm ──────────────────────────────────────────────────────────────
